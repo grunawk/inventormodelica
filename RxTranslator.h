@@ -79,7 +79,7 @@ class CRxTranslator : public CUnknown, public IRxTranslatorAddInServer2
 		STDMETHOD(GetThumbnail)(DataMedium* SourceData, VARIANT* Thumbnail);
 
 private:
-	HRESULT WriteModelicaFile(FILE* pFile, AssemblyDocument* pDoc);
+	HRESULT CreateModelicaAssembly(FILE* pFile, AssemblyDocument* pDoc, MoAssemblyPtr& assem);
 };
 
 #endif 

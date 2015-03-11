@@ -11,6 +11,7 @@
 #include "rxtranslator.h"
 #include "translator.h"
 #include "MassProp.h"
+#include "MoAssembly.h"
 #include "MoBody.h"
 #include "MoBodyFrame.h"
 #include "moJoint.h"
@@ -182,7 +183,7 @@ HRESULT CRxTranslator::ShowSaveCopyAsOptions(IUnknown* pSourceObject, Translatio
 	return E_NOTIMPL;
 }
 
-HRESULT CRxTranslator::WriteModelicaFile(FILE *pFile, AssemblyDocument* pDoc)
+HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDoc, MoAssemblyPtr& moAssembly)
 {
 	AssemblyComponentDefinitionPtr pAssemblyDefPtr;
 	HRESULT hr = pDoc->get_ComponentDefinition(&pAssemblyDefPtr);
@@ -212,6 +213,8 @@ HRESULT CRxTranslator::WriteModelicaFile(FILE *pFile, AssemblyDocument* pDoc)
 	if (!rigidBodyResults)
 		return E_FAIL;
 
+	moAssembly = std::make_shared<MoAssembly>();
+
 	std::map<ULONG, MoBodyPtr> moBodies;
 
 	RigidBodyGroupsPtr rigidBodyGroups = rigidBodyResults->GetRigidBodyGroups();
@@ -226,6 +229,7 @@ HRESULT CRxTranslator::WriteModelicaFile(FILE *pFile, AssemblyDocument* pDoc)
 
 			auto moBody = std::make_shared<MoBody>();
 			moBodies[rigidBodyGroup->GetGroupID()] = moBody;
+			moAssembly->addBody(moBody);
 
 			bool grounded = rigidBodyGroup->GetGrounded() == VARIANT_TRUE ? true : false;
 
@@ -378,6 +382,7 @@ HRESULT CRxTranslator::WriteModelicaFile(FILE *pFile, AssemblyDocument* pDoc)
 					joint->frame2(bf2);
 
 					moJoints.push_back(joint);
+					moAssembly->addJoint(joint);
 				}
 			}
 		}
@@ -390,23 +395,7 @@ HRESULT CRxTranslator::WriteModelicaFile(FILE *pFile, AssemblyDocument* pDoc)
 	dispName.erase(i,UTxString::npos);
 	if (FAILED(hr))
 		return hr;
-
-	_ftprintf_s(pFile, L"model %s\n", dispName.c_str());
-
-	for (auto moBody: moBodies)
-		moBody.second->write(pFile);
-
-	_ftprintf_s(pFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(Placement(visible = true, transformation(origin = {-72, 68}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n");
-
-	for (auto moJoint: moJoints)
-		moJoint->write(pFile);
-
-	_ftprintf_s(pFile, L"equation\n");
-
-	for (auto moJoint: moJoints)
-		moJoint->connections(pFile);
-
-	_ftprintf_s(pFile, L"end %s;\n", dispName.c_str());
+	moAssembly->name(dispName);
 
 	return S_OK;
 }
@@ -449,7 +438,8 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 		if (!pFile)
 			return E_FAIL;
 
-		hr = WriteModelicaFile(pFile, pAssemblyDoc);
+		MoAssemblyPtr moAssembly;
+		hr = CreateModelicaAssembly(pFile, pAssemblyDoc, moAssembly);
 
 		int ret = fclose(pFile);
 		if (ret != 0)
@@ -457,10 +447,18 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 			remove(W2A(fileName));
 			return E_FAIL;
 		}
-	}
 
-	if (FAILED(hr))
-		AfxMessageBox(_T("Failed to Save Document."));
+		if (SUCCEEDED(hr))
+		{
+			if (!moAssembly->write(pFile))
+			{
+				hr = E_FAIL;
+				AfxMessageBox(_T("Failed to Save Document."));
+			}
+		}
+		else
+			AfxMessageBox(_T("Failed to convert assembly to Modelica."));
+	}
 
 	return S_OK;
 }

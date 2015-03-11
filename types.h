@@ -15,4 +15,7 @@ typedef std::weak_ptr<MoBodyFrame> MoBodyFrameWPtr;
 class MoJoint;
 typedef std::shared_ptr<MoJoint> MoJointPtr;
 
+class MoAssembly;
+typedef std::shared_ptr<MoAssembly> MoAssemblyPtr;
+
 typedef unsigned long MoId;

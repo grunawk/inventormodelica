@@ -317,6 +317,7 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MassProp.cpp" />
+    <ClCompile Include="MoAssembly.cpp" />
     <ClCompile Include="MoBase.cpp" />
     <ClCompile Include="MoBody.cpp" />
     <ClCompile Include="MoBodyFrame.cpp" />
@@ -352,6 +353,7 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
     <ClInclude Include="CommonPreProc.h" />
     <ClInclude Include="GUIDs.h" />
     <ClInclude Include="MassProp.h" />
+    <ClInclude Include="MoAssembly.h" />
     <ClInclude Include="MoBase.h" />
     <ClInclude Include="MoBody.h" />
     <ClInclude Include="MoBodyFrame.h" />
