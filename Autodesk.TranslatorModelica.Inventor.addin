@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Type attribute is same as Type registry key (Standard, Translator, Plugin (Server only) -->
+<Addin Type="Translator">
+  <ClassId>{B0CE4C31-36B5-4581-B7C2-AC903D3F58DF}</ClassId>
+  <ClientId>{B0CE4C31-36B5-4581-B7C2-AC903D3F58DF}</ClientId>
+  <DisplayName Language="1033">Translator: Modelica</DisplayName>
+  <Description>Save Inventor assembly as Modelica file.</Description>
+  <Assembly>ModelicaTrans.dll</Assembly>
+  <FileExtensions>.mo</FileExtensions>
+  <FilterText Language="1033">Modelica Files (*.mo)</FilterText>
+  <SupportsOpenInto>.iam</SupportsOpenInto>
+  <SupportsImportInto>.iam</SupportsImportInto>
+  <SupportsSaveCopyAs>1</SupportsSaveCopyAs>
+  <SupportsSaveCopyAsFrom>.iam</SupportsSaveCopyAsFrom>
+  <SupportsOpen>0</SupportsOpen>
+  <SupportsImport>0</SupportsImport>	  
+  <SupportsSaveCopyAs>1</SupportsSaveCopyAs> 
+  <TranslatorAvailable>1</TranslatorAvailable>
+  <SupportedSoftwareVersionGreaterThan>19..</SupportedSoftwareVersionGreaterThan>
+  <LoadOnStartUp>0</LoadOnStartUp>
+  <Hidden>0</Hidden>
+  <ExtraInfo>1</ExtraInfo>
+</Addin>

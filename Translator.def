@@ -1,0 +1,9 @@
+; Translator.def : Declares the module parameters for the DLL.
+
+LIBRARY      "ModelicaTrans"
+; DESCRIPTION  'SimpleAddIn Windows Dynamic Link Library'
+
+EXPORTS
+	DllCanUnloadNow     PRIVATE
+	DllGetClassObject   PRIVATE
+
