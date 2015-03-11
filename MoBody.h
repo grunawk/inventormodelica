@@ -4,6 +4,8 @@
 #include <gemat3d.h>
 #include "MassProp.h"
 
+// MoBody is a Modelica Body with interfaces for all joints using it
+
 class MoBody : public MoBase
 {
 public:
