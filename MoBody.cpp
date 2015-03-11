@@ -179,7 +179,7 @@ HRESULT MoBody::thumbnail(const IPictureDispPtr& pictureDisp)
 void MoBody::addBodyFrame(MoBodyFramePtr bodyFrame)
 {
 	m_bodyFrames.push_back(bodyFrame);
-	bodyFrame->id(m_bodyFrames.size());
+	bodyFrame->id(static_cast<MoId>(m_bodyFrames.size()));
 }
 
 bool MoBody::write(FILE* moFile) const
