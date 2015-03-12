@@ -16,7 +16,14 @@ MoJoint::~MoJoint(void)
 
 bool MoJoint::write(FILE* moFile) const
 {
-	_ftprintf_s(moFile, L"  Modelica.Mechanics.MultiBody.Joints.%s annotation(Placement(visible = true, transformation(origin = {-30, 70}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n", name().c_str());
+	TCHAR* typeNames[2] = { L"Revolute", L"Prismatic" };
+
+	if (m_type > ePrismatic)
+		return false;
+
+	_ftprintf_s(moFile, L"  Modelica.Mechanics.MultiBody.Joints.%s %s annotation(Placement(visible = true, transformation(origin = {-30, 70}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n",
+		typeNames[m_type],
+		name().c_str());
 	return true;
 }
 

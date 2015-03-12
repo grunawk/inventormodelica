@@ -18,19 +18,17 @@ public:
 
 	void addBodyFrame(MoBodyFramePtr bodyFrame);
 
-	AcGeMatrix3d& transform() { return m_transform; }
-
-	HRESULT thumbnail(const IPictureDispPtr& pictureDisp);
-
-	void grounded(bool g) { m_grounded=g; }
+	void grounded(bool g) { m_grounded = g; }
 	bool grounded() const { return m_grounded; }
 
+	void thumbnail(const std::string& thumbnail) { m_thumbnail = thumbnail; }
+
 	virtual LPCTSTR baseName() const { return L"rigidBody"; }
+	static LPCTSTR bodyFrameBaseName() { return L"frame"; }
 
 private:
 	static MoId m_lastId;
 
-	AcGeMatrix3d m_transform;
 	double m_mass;
 	MIxInertiaTensor m_inertia;
 	AcGePoint3d m_cg;

@@ -16,6 +16,164 @@
 #include "MoBodyFrame.h"
 #include "moJoint.h"
 
+// Thumbnail utils
+
+std::string toBase64 (BYTE const * bytes, size_t length)
+// converts the bytes array into a base64 string
+{
+	std::string output;
+
+	// NOTE: If your implementation of base64 must use a slightly different alphabet, you must
+	// change it here and in base64decode.
+	static const char *const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		
+	output.clear();
+	output.reserve((4 * length + 2) / 3); // Any changes to the algorithm would likely change this as well
+	int tmp;
+	const unsigned char *cur = (const unsigned char *)bytes;
+	const unsigned char *end = cur + length;
+	while(end - cur >= 3)
+	{
+		output += alphabet[(*cur >> 2) & 0x3F];
+		tmp = (*cur++ << 4) & 0x30;
+		output += alphabet[tmp | ((*cur >> 4) & 0x0F)];
+		tmp = (*cur++ << 2) & 0x3C;
+		output += alphabet[tmp | ((*cur >> 6) & 0x03)];
+		output += alphabet[*cur++ & 0x3F];
+	}
+
+	if(end - cur)
+	{
+		output += alphabet[(*cur >> 2) & 0x3F];
+		if(end - cur > 1)
+		{
+			tmp = (*cur++ << 4) & 0x30;
+			output += alphabet[tmp | ((*cur >> 4) & 0x0F)];
+			if(end - cur > 1)
+			{
+				tmp = (*cur++ << 2) & 0x3C;
+				output += alphabet[tmp | ((*cur >> 6) & 0x03)];
+				output += alphabet[*cur & 0x3F];
+			}
+			else
+				output += alphabet[(*cur << 2) & 0x3C];
+		}
+		else
+		{
+			output += alphabet[(*cur << 4) & 0x30];
+		}
+	}
+
+	// Apply padding the way that windows base 64 encoder does...
+	size_t encodedSize = output.size();
+	while(encodedSize % 4)
+	{
+		output += "=";
+		encodedSize++;
+	}
+
+	return output;
+}
+
+HRESULT render(IPicture* piPicture, BYTE*&bytes, size_t &len )
+{
+	HRESULT hr = NOERROR;
+
+	// Set up the bitmap info...
+	LONG dwWidth = 200, dwHeight = 200;
+	BITMAPINFO bminfo;
+	bminfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bminfo.bmiHeader.biWidth = dwWidth;
+	bminfo.bmiHeader.biHeight = dwHeight;
+	bminfo.bmiHeader.biPlanes = 1;
+	bminfo.bmiHeader.biBitCount = 24;
+	bminfo.bmiHeader.biCompression = BI_RGB;
+	bminfo.bmiHeader.biSizeImage = 0; // 0 for BI_RGB compression
+	bminfo.bmiHeader.biXPelsPerMeter = 2835 ;
+	bminfo.bmiHeader.biYPelsPerMeter = 2835 ;
+	bminfo.bmiHeader.biClrUsed = 0;
+	bminfo.bmiHeader.biClrImportant = 0;
+
+	// Create the storage stream...
+	IStream* piStream = NULL;
+	hr = ::CreateStreamOnHGlobal( NULL, TRUE, &piStream );
+
+	// Render it...
+	LPVOID pBits=NULL;
+	HBITMAP hBitmap = ::CreateDIBSection(NULL, &bminfo, DIB_RGB_COLORS, &pBits, NULL, 0);
+	CDC memDC;
+	VERIFY(memDC.CreateCompatibleDC(NULL));
+	CBitmap bitmap;
+	bitmap.Attach(hBitmap);
+	CBitmap *pOldBitmap = memDC.SelectObject(&bitmap);
+	memDC.SetMapMode(MM_TEXT);
+	OLE_YSIZE_HIMETRIC height;
+	OLE_XSIZE_HIMETRIC width;
+	hr = piPicture->get_Height(&height);
+	ASSERT(SUCCEEDED(hr));
+	hr = piPicture->get_Width(&width);
+	ASSERT(SUCCEEDED(hr));
+	hr = piPicture->Render(memDC.m_hDC, 0, dwWidth, dwHeight, -dwWidth, 0,0, width, height,NULL);
+	ASSERT(SUCCEEDED(hr));
+	memDC.SelectObject(pOldBitmap);
+	
+	// Create the bitmap header...
+	PICTDESC pictDesc;
+	pictDesc.cbSizeofstruct = sizeof(PICTDESC);
+	pictDesc.bmp.hbitmap = (HBITMAP)bitmap.m_hObject;
+	pictDesc.bmp.hpal = NULL;
+	pictDesc.picType = PICTYPE_BITMAP;
+
+	// Write it to the stream...
+	IUnknownPtr punkPicture;
+	hr = OleCreatePictureIndirect(&pictDesc,IID_IUnknown,FALSE,(LPVOID*)&punkPicture);
+	ASSERT(SUCCEEDED(hr));
+	IPicturePtr spiNewPicture = punkPicture;
+	hr = spiNewPicture->SaveAsFile(piStream,TRUE,NULL);
+	ASSERT(SUCCEEDED(hr));
+
+	// Read the bytes in the stream...
+	STATSTG stgStat;
+	LARGE_INTEGER liZero;
+	liZero.QuadPart = 0;
+	piStream->Seek( liZero,  STREAM_SEEK_SET, NULL );
+	piStream->Stat( &stgStat, STATFLAG_NONAME );
+	bytes = new BYTE[(ULONG)stgStat.cbSize.QuadPart];
+	ULONG ulBytesRead = 0;
+	piStream->Read( (LPVOID)bytes, (ULONG)stgStat.cbSize.QuadPart, &ulBytesRead );
+	len = ulBytesRead;
+
+	return NOERROR;
+}
+
+HRESULT thumbnail(const IPictureDispPtr& pictureDisp, std::string& thumbnailBase64)
+{
+	if (IPicturePtr pict = pictureDisp)
+	{
+		BYTE* bytes = nullptr;
+		size_t len = 0;
+		HRESULT hr = render(pict, bytes, len);
+		OnErrorReturn(FAILED(hr), hr);
+
+		thumbnailBase64 = toBase64(bytes, len);
+		delete[] bytes;
+	}
+
+	return thumbnailBase64.empty() ? E_FAIL : S_OK;
+}
+
+HRESULT documentThumbnail(DocumentPtr doc, std::string& thumbnailBase64)
+{
+	if (doc)
+	{
+		if (IPictureDispPtr pictDisp = doc->GetThumbnail())
+		{
+			return thumbnail(pictDisp, thumbnailBase64);
+		}
+	}
+	return E_FAIL;
+}
+
 // The addin wizard adds command id definitions here.
 
 /*--------------------- IUnknown-interface related implementation  --------------------------------*/
@@ -214,6 +372,11 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 		return E_FAIL;
 
 	moAssembly = std::make_shared<MoAssembly>();
+	std::string assemblyThumbnail;
+	if (SUCCEEDED(documentThumbnail(pDoc, assemblyThumbnail)))
+	{
+		moAssembly->thumbnail(assemblyThumbnail);
+	}
 
 	std::map<ULONG, MoBodyPtr> moBodies;
 
@@ -270,13 +433,9 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				
 			if (bestRepresentative)
 			{
-				if (DocumentPtr doc = bestRepresentative->GetDefinition()->GetDocument())
-				{
-					if (IPictureDispPtr pictDisp = doc->GetThumbnail())
-					{
-						moBody->thumbnail(pictDisp);
-					}
-				}
+				std::string thumbnailBase64;
+				if (SUCCEEDED(documentThumbnail(bestRepresentative->GetDefinition()->GetDocument(), thumbnailBase64)))
+					moBody->thumbnail(thumbnailBase64);
 			}
 		}
 	}
@@ -441,13 +600,6 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 		MoAssemblyPtr moAssembly;
 		hr = CreateModelicaAssembly(pFile, pAssemblyDoc, moAssembly);
 
-		int ret = fclose(pFile);
-		if (ret != 0)
-		{
-			remove(W2A(fileName));
-			return E_FAIL;
-		}
-
 		if (SUCCEEDED(hr))
 		{
 			if (!moAssembly->write(pFile))
@@ -458,6 +610,13 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 		}
 		else
 			AfxMessageBox(_T("Failed to convert assembly to Modelica."));
+
+		int ret = fclose(pFile);
+		if (ret != 0)
+		{
+			remove(W2A(fileName));
+			return E_FAIL;
+		}
 	}
 
 	return S_OK;
