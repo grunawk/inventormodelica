@@ -13,12 +13,20 @@ public:
 	virtual bool write(FILE* moFile) const;
 	bool connections(FILE* moFile) const;
 
+	MoBodyPtr body() { return m_body.lock(); }
+
 	UTxString frame() const;
 
 	virtual LPCTSTR baseName() const { return L"bodyFrame"; }
 
+	void diagramInterface(size_t i) { m_diagramInterface = i; }
+
 private:
 	MoBodyWPtr m_body;
 	AcGeMatrix3d m_transform;
+
+	bool m_diagramLeft;
+	float m_diagramRightIndex;
+	size_t m_diagramInterface;
 };
 

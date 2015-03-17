@@ -26,6 +26,12 @@ public:
 	virtual LPCTSTR baseName() const { return L"rigidBody"; }
 	static LPCTSTR bodyFrameBaseName() { return L"frame"; }
 
+	/// diagram functions
+
+	AcGePoint2d diagramPos() const;
+	AcGePoint2d frameDiagramPos() const;
+	void nextDiagramInterface(MoBodyFramePtr& frame);
+
 private:
 	static MoId m_lastId;
 
@@ -37,6 +43,7 @@ private:
 	double m_width;
 	double m_height;
 	std::string m_thumbnail;
+	size_t m_nextDiagramInferface;
 
 	std::vector<MoBodyFramePtr> m_bodyFrames;
 };

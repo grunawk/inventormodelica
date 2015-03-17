@@ -91,3 +91,13 @@ bool MoBody::write(FILE* moFile) const
 
 	return true;
 }
+
+void MoBody::nextDiagramInterface(MoBodyFramePtr& frame)
+{
+	if (std::find(m_bodyFrames.begin(), m_bodyFrames.end(), frame) == m_bodyFrames.end())
+	{
+		ASSERT(0);
+	}
+
+	frame->diagramInterface(m_nextDiagramInferface++);
+}

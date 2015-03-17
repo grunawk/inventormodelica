@@ -5,7 +5,8 @@
 
 MoBodyFrame::MoBodyFrame(MoBodyPtr body, const AcGeMatrix3d& transform) :
 	m_body(body),
-	m_transform(transform)
+	m_transform(transform),
+	m_diagramInterface(0)
 {
 }
 

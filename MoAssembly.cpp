@@ -2,6 +2,7 @@
 #include "MoAssembly.h"
 #include "MoJoint.h"
 #include "MoBody.h"
+#include "MoBodyFrame.h"
 
 MoAssembly::MoAssembly(void)
 {
@@ -13,12 +14,14 @@ MoAssembly::~MoAssembly(void)
 
 bool MoAssembly::write(FILE* moFile) const
 {
+	layout();
+
 	_ftprintf_s(moFile, L"model %s\n", name().c_str());
 
 	for (auto moBody: m_bodies)
 		moBody->write(moFile);
 
-	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(Placement(visible = true, transformation(origin = {-72, 68}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n");
+	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(Placement(visible = true, transformation(origin = {-80, -80}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n");
 
 	for (auto moJoint: m_joints)
 		moJoint->write(moFile);
@@ -26,9 +29,13 @@ bool MoAssembly::write(FILE* moFile) const
 	_ftprintf_s(moFile, L"equation\n");
 
 	for (auto moBody: m_bodies)
+	{
 		if (moBody->grounded())
-			_ftprintf_s(moFile, L"  connect(%s.%s, world.frame_b) annotation(Line(points = {{-40, 70}, {-60, 70}}, color = {95, 95, 95}));\n",
-				moBody->name().c_str(), moBody->bodyFrameBaseName());
+		{
+			_ftprintf_s(moFile, L"  connect(%s.%s, world.frame_b) annotation(Line(points = {{%f, %f}, {-60, -70}}, color = {95, 95, 95}));\n",
+				moBody->name().c_str(), moBody->bodyFrameBaseName(), moBody->frameDiagramPos().x, moBody->frameDiagramPos().y);
+		}
+	}
 
 	for (auto moJoint: m_joints)
 		moJoint->connections(moFile);
@@ -50,11 +57,60 @@ bool MoAssembly::write(FILE* moFile) const
 
 void MoAssembly::layout()
 {
-	// treat assembly space as grid with 0,0 at lower left
-	// put world at 0,0
-	// put grounded at (2,0) (2,2) .. (n*2,2)
-	// 
+	// world location in top/right
+	diagramRowColumn(0,0);
 
+	for (auto& body: m_bodies)
+	{
+		if (body->inDiagram())
+			continue;
 
+		int r = 0;
+		if (body->grounded())
+		{
+			layout(body, r, 1);
+		}
+	}
+}
+
+void MoAssembly::layout(MoBodyPtr& body, int& nextRow, int column)
+{
+	body->diagramRowColumn(nextRow, column);
+
+	int nextColumn = column + 1;
+	for (auto& joint: m_joints)
+	{
+		size_t frameIndex;
+		if (joint->inDiagram())
+		{
+			if (MoBodyFramePtr frame = joint->frame(body, frameIndex))
+			{
+				body->nextDiagramInterface(frame);
+			}
+		}
+
+		if (MoBodyFramePtr frame1 = joint->frame(body, frameIndex))
+		{
+			joint->diagramRowColumn(nextRow, nextColumn);
+			if (frameIndex == 1)
+				joint->diagramFlipHorizontal(true);
+			body->nextDiagramInterface(frame1);
+
+			MoBodyFrameWPtr wFrame2 = frameIndex == 0 ? joint->frame1() : joint->frame2();
+			if (auto frame2 = wFrame2.lock())
+			{
+				if (MoBodyPtr body2 = frame2->body())
+				{
+					if (!body2->inDiagram())
+						layout(body2, nextRow, nextColumn + 1);
+					else
+					{
+						body2->nextDiagramInterface(frame2);
+					}
+				}
+			}
+		}
+		++nextRow;
+	}
 }
 

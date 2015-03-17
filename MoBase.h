@@ -17,8 +17,13 @@ public:
 	void name(const UTxString& n) { m_name = n; }
 	UTxString name() const;
 
+	bool inDiagram() { return m_diagramRow >= 0; }
+	void diagramRowColumn(int row, int col);
+
 private:
 	MoId m_id;
 	UTxString m_name;
+	int m_diagramRow;
+	int m_diagramCol;
 };
 
