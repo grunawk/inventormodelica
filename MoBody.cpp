@@ -36,7 +36,7 @@ void MoBody::addBodyFrame(MoBodyFramePtr bodyFrame)
 	bodyFrame->id(static_cast<MoId>(m_bodyFrames.size()));
 }
 
-bool MoBody::write(FILE* moFile) const
+bool MoBody::write(FILE* moFile, MoDiagram& moDiagram) const
 {
 	double halfWidth = m_width/2;
 	double halfHeight = m_height/2;
@@ -49,16 +49,13 @@ bool MoBody::write(FILE* moFile) const
 	//  r_CM = {1, 2, 3}, r_0(start = {2, 3, 4})) annotation(Placement(visible = true, transformation(origin = {-44, 18}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
 
 	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Parts.Body body1 (m = %g, I_11 = %g, I_22 = %g, I_33 = %g, I_21 = %g, I_31 = %g, I_32 = %g, r_CM = {%g, %g, %g}) "
-						L"annotation(Placement(visible = true, transformation(origin = {%g, %g}, extent = {{%g, %g}, {%g, %g}}, rotation = %g)));\n",
+						L"annotation(Placement(visible = true, transformation(origin = {0, 10}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));\n",
 				m_mass,
 				m_inertia.m_momentsOfInertia[0],  m_inertia.m_momentsOfInertia[1],  m_inertia.m_momentsOfInertia[2],
 				m_inertia.m_productsOfInertia[0], m_inertia.m_productsOfInertia[1], m_inertia.m_productsOfInertia[2],
-				m_cg[0], m_cg[1], m_cg[2],
-				m_placement[0], m_placement[1],
-				-halfWidth, -halfHeight, halfWidth, halfHeight,
-				0.0);
+				m_cg[0], m_cg[1], m_cg[2]);
 
-	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Interfaces.Frame_a %s annotation(Placement(visible = true, transformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-102, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n",
+	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Interfaces.Frame_a %s annotation(Placement(visible = true, transformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n",
 						bodyFrameBaseName());
 
 	for (auto bodyFrame: m_bodyFrames)
@@ -66,7 +63,7 @@ bool MoBody::write(FILE* moFile) const
 
 	_ftprintf_s(moFile, L"  equation\n");
 
-	_ftprintf_s(moFile, L"    connect(body1.frame_a, %s) annotation(Line(points = {{0, 0}, {-40, 0}}, color = {95, 95, 95}));\n",
+	_ftprintf_s(moFile, L"    connect(body1.frame_a, %s) annotation(Line(points = {{0, 0}, {-48, 0}}, color = {95, 95, 95}));\n",
 						bodyFrameBaseName());
 
 	for (auto bodyFrame: m_bodyFrames)

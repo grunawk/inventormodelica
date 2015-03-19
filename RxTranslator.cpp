@@ -556,6 +556,8 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 		return hr;
 	moAssembly->name(dispName);
 
+	moAssembly->layout();
+
 	return S_OK;
 }
 

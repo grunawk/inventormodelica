@@ -3,6 +3,7 @@
 #include "MoJoint.h"
 #include "MoBody.h"
 #include "MoBodyFrame.h"
+#include "MoDiagram.h"
 
 MoAssembly::MoAssembly(void)
 {
@@ -14,17 +15,25 @@ MoAssembly::~MoAssembly(void)
 
 bool MoAssembly::write(FILE* moFile) const
 {
-	layout();
+	MoDiagram moDiagram;
+
+	for (auto moBody: m_bodies)
+		if (!moDiagram.addExtent(*moBody))
+			return false;
+
+	for (auto moJoint: m_joints)
+		if (!moDiagram.addExtent(*moJoint))
+			return false;
 
 	_ftprintf_s(moFile, L"model %s\n", name().c_str());
 
 	for (auto moBody: m_bodies)
-		moBody->write(moFile);
+		moBody->write(moFile, moDiagram);
 
-	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(Placement(visible = true, transformation(origin = {-80, -80}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n");
+	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(%s);\n", moDiagram.placement(*this).c_str());
 
 	for (auto moJoint: m_joints)
-		moJoint->write(moFile);
+		moJoint->write(moFile, moDiagram);
 
 	_ftprintf_s(moFile, L"equation\n");
 
@@ -102,7 +111,12 @@ void MoAssembly::layout(MoBodyPtr& body, int& nextRow, int column)
 				if (MoBodyPtr body2 = frame2->body())
 				{
 					if (!body2->inDiagram())
-						layout(body2, nextRow, nextColumn + 1);
+					{
+						if (!body2->grounded())
+						{
+							layout(body2, nextRow, nextColumn + 1);
+						}
+					}
 					else
 					{
 						body2->nextDiagramInterface(frame2);

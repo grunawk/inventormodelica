@@ -3,13 +3,15 @@
 #include <io.h>
 #include <memory>
 
+class MoDiagram;
+
 class MoBase
 {
 public:
 	MoBase(MoId id=0);
 	virtual ~MoBase(void);
 
-	virtual bool write(FILE* moFile) const = 0;
+	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const = 0;
 	virtual LPCTSTR baseName() const = 0;
 
 	MoId id() const { return m_id; }
@@ -17,7 +19,9 @@ public:
 	void name(const UTxString& n) { m_name = n; }
 	UTxString name() const;
 
-	bool inDiagram() { return m_diagramRow >= 0; }
+	bool inDiagram() const { return m_diagramRow >= 0; }
+	int diagramRow() const { return m_diagramRow; }
+	int diagramColumn() const { return m_diagramCol; }
 	void diagramRowColumn(int row, int col);
 
 private:

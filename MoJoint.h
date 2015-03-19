@@ -9,8 +9,8 @@ public:
 	MoJoint(void);
 	virtual ~MoJoint(void);
 
-	virtual bool write(FILE* moFile) const;
-	bool connections(FILE* moFile) const;
+	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const;
+	bool connections(FILE* moFile, MoDiagram& moDiagram) const;
 
 	void frame1(MoBodyFrameWPtr frame) { m_frame1 = frame; }
 	void frame2(MoBodyFrameWPtr frame) { m_frame2 = frame; }

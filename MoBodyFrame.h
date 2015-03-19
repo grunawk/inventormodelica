@@ -10,8 +10,8 @@ public:
 
 	const AcGeMatrix3d transform() const { return m_transform; }
 
-	virtual bool write(FILE* moFile) const;
-	bool connections(FILE* moFile) const;
+	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const;
+	bool connections(FILE* moFile, MoDiagram& moDiagram) const;
 
 	MoBodyPtr body() { return m_body.lock(); }
 

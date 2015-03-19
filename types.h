@@ -4,6 +4,9 @@
 
 typedef std::basic_string<wchar_t, std::char_traits<wchar_t> > UTxString;
 
+class MoBase;
+typedef std::shared_ptr<MoBase> MoBasePtr;
+
 class MoBody;
 typedef std::weak_ptr<MoBody>  MoBodyWPtr;
 typedef std::shared_ptr<MoBody>  MoBodyPtr;

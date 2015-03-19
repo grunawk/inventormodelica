@@ -16,8 +16,9 @@ public:
 
 	void thumbnail(const std::string& thumbnail) { m_thumbnail = thumbnail; }
 
-private:
 	void layout();
+
+private:
 	void layout(MoBodyPtr& body, int& nextRow, int column);
 
 	std::vector<MoBodyPtr> m_bodies;
