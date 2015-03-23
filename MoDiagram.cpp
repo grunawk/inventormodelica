@@ -40,7 +40,7 @@ bool MoDiagram::addExtent(const MoBase& moBase)
 	return true;
 }
 
-UTxString MoDiagram::placement(const MoBase& moBase) const
+std::wstring MoDiagram::placement(const MoBase& moBase) const
 {
 	double x = 20.0 + moBase.diagramColumn() * 20.0 + 10.0;
 	double y = 20.0 + moBase.diagramRow() * 20.0 + 10.0;

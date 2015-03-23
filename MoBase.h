@@ -2,6 +2,7 @@
 #include "StdAfx.h"
 #include <io.h>
 #include <memory>
+#include <string>
 
 class MoDiagram;
 
@@ -16,18 +17,29 @@ public:
 
 	MoId id() const { return m_id; }
 	void id(MoId id) { m_id = id; }
-	void name(const UTxString& n) { m_name = n; }
-	UTxString name() const;
+	void name(const std::wstring& n) { m_name = n; }
+	std::wstring name() const;
 
-	bool inDiagram() const { return m_diagramRow >= 0; }
-	int diagramRow() const { return m_diagramRow; }
-	int diagramColumn() const { return m_diagramCol; }
-	void diagramRowColumn(int row, int col);
+	bool inDiagram() const { return m_inDiagram; }
+	void diagramPosition(double x, double y) { m_x=x; m_y=y; m_inDiagram=true; }
+	double diagramX() const { return m_x; }
+	double diagramY() const { return m_y;}
+	bool flipHorizontal() const { return m_flipHorizontal; }
+	void flipHorizontal(bool flip) { m_flipHorizontal = flip; }
+	double rotation() const { return m_rotation; }
+	void rotation(double r) { m_rotation = r; }
+	
+	std::wstring placement() const;
+	std::wstring connection(double x1, double y1, double x2, double y2) const;
 
 private:
 	MoId m_id;
-	UTxString m_name;
+	std::wstring m_name;
 	int m_diagramRow;
 	int m_diagramCol;
+	double m_x, m_y;
+	bool m_flipHorizontal;
+	double m_rotation;
+	bool m_inDiagram;
 };
 

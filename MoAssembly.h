@@ -19,7 +19,7 @@ public:
 	void layout();
 
 private:
-	void layout(MoBodyPtr& body, int& nextRow, int column);
+	void layout(MoBodyPtr& body, double x, double& nextY);
 
 	std::vector<MoBodyPtr> m_bodies;
 	std::vector<MoJointPtr> m_joints;

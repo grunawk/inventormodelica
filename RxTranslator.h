@@ -4,7 +4,26 @@
 	This file contains the declaration of the class that defines the COM-object with which
 	Autodesk Inventor (R) first communicates (supports the IRxApplicationAddInServer interface).
 
+	Strategy for inventor to modelica
+
+	
+	rigid group -> MoBody
+	MoBody = definition with cm relative to world + occurrence with ground
+
+	rigid group -> MoRigidGroupOccurrence
+	MoRigidGroupOccurrence is instantiation of MoRigidGroup
+	MoRigidGroupOccurrence can be grounded and has a transform
+	MoRigidGroup contains modelica body that is the sum of all rigid bodies in group
+	MoRigidGroup has icon from component with largest mass in group
+	MoRigidGroup cm is relative to world
+	MoRigidGroup *could* have multiple fixed bodies for each body in group -- but not needed
+	MoRigidGroups with same definition *could* be mapped to a single MoRigidGroup for reuse
+	MoRigidGroup and MoRigidGroupOccurrence *could* be the same object if MoRigidGroups are not reused
+	joint -> MoJoint which combines the joint definition and occurrence since assembly is flat
+	MoJoint contains two fixed rotations to two MoRigidGroup frames and a modelica joint
+	if MoRigidGroupOccurrence is grounded, frame attached to fixedrotation to world
 */
+
 
 #ifndef _RXTranslator_
 #define _RXTranslator_

@@ -549,9 +549,9 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 
 	BSTR displayName;
 	hr = pDoc->get_DisplayName(&displayName);
-	UTxString dispName = displayName;
+	std::wstring dispName = displayName;
 	size_t i = dispName.find_last_of(L'.');
-	dispName.erase(i,UTxString::npos);
+	dispName.erase(i,std::wstring::npos);
 	if (FAILED(hr))
 		return hr;
 	moAssembly->name(dispName);

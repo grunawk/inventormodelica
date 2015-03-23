@@ -320,7 +320,6 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
     <ClCompile Include="MoAssembly.cpp" />
     <ClCompile Include="MoBase.cpp" />
     <ClCompile Include="MoBody.cpp" />
-    <ClCompile Include="MoBodyFrame.cpp" />
     <ClCompile Include="MoDiagram.cpp" />
     <ClCompile Include="MoJoint.cpp" />
     <ClCompile Include="RxTranslator.cpp" />
@@ -357,7 +356,6 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
     <ClInclude Include="MoAssembly.h" />
     <ClInclude Include="MoBase.h" />
     <ClInclude Include="MoBody.h" />
-    <ClInclude Include="MoBodyFrame.h" />
     <ClInclude Include="MoDiagram.h" />
     <ClInclude Include="MoJoint.h" />
     <ClInclude Include="Resource.h" />

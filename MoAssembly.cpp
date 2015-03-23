@@ -17,13 +17,27 @@ bool MoAssembly::write(FILE* moFile) const
 {
 	MoDiagram moDiagram;
 
+	double xMax = 20;
+	double yMax = 30;
 	for (auto moBody: m_bodies)
-		if (!moDiagram.addExtent(*moBody))
+	{
+		if (!moBody->inDiagram())
 			return false;
 
+		if (moBody->diagramX() > xMax)
+			xMax = moBody->diagramX();
+	}
+
 	for (auto moJoint: m_joints)
-		if (!moDiagram.addExtent(*moJoint))
+	{
+		if (!moJoint->inDiagram())
 			return false;
+
+		if (moJoint->diagramX() > xMax)
+			xMax = moJoint->diagramX();
+	}
+
+	xMax +=
 
 	_ftprintf_s(moFile, L"model %s\n", name().c_str());
 
@@ -41,13 +55,21 @@ bool MoAssembly::write(FILE* moFile) const
 	{
 		if (moBody->grounded())
 		{
-			_ftprintf_s(moFile, L"  connect(%s.%s, world.frame_b) annotation(Line(points = {{%f, %f}, {-60, -70}}, color = {95, 95, 95}));\n",
-				moBody->name().c_str(), moBody->bodyFrameBaseName(), moBody->frameDiagramPos().x, moBody->frameDiagramPos().y);
+			if (moBody->diagramX() > 60)
+			{
+				_ftprintf_s(moFile, L"  connect(world.frame_b, %s.frame) annotation(%s);\n",
+					moBody->name().c_str(), connection(moBody->diagramX(), moBody->diagramY()-10, diagramX()+10, diagramY()));
+			}
+			else
+			{
+				_ftprintf_s(moFile, L"  connect(%s.frame, world.frame_b) annotation(%s);\n",
+					moBody->name().c_str(), connection(diagramX()+10, diagramY(), moBody->diagramX(), moBody->diagramY()-10));
+			}
 		}
 	}
 
 	for (auto moJoint: m_joints)
-		moJoint->connections(moFile);
+		moJoint->connections(moFile, moDiagram);
 
 	_ftprintf_s(moFile, L"  annotation("
 						L"Diagram(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2}))"
@@ -67,64 +89,62 @@ bool MoAssembly::write(FILE* moFile) const
 void MoAssembly::layout()
 {
 	// world location in top/right
-	diagramRowColumn(0,0);
+	diagramPosition(20.0,30.0);
+	double y = 20.0;
 
+	// first start with grounded bodies
 	for (auto& body: m_bodies)
 	{
 		if (body->inDiagram())
 			continue;
 
-		int r = 0;
 		if (body->grounded())
 		{
-			layout(body, r, 1);
+			layout(body, 60, y);
 		}
+	}
+
+	// add any remaining bodies
+	for (auto& body: m_bodies)
+	{
+		if (body->inDiagram())
+			continue;
+
+		layout(body, 60, y);
 	}
 }
 
-void MoAssembly::layout(MoBodyPtr& body, int& nextRow, int column)
+void MoAssembly::layout(MoBodyPtr& body, double x, double& nextY)
 {
-	body->diagramRowColumn(nextRow, column);
+	body->diagramPosition(x, nextY);
 
-	int nextColumn = column + 1;
 	for (auto& joint: m_joints)
 	{
 		size_t frameIndex;
-		if (joint->inDiagram())
+
+		int bodyIndex = -1;
+
+		if (joint->body(0) == body)
+			bodyIndex = 0;
+		else if (joint->body(1) == body)
 		{
-			if (MoBodyFramePtr frame = joint->frame(body, frameIndex))
-			{
-				body->nextDiagramInterface(frame);
-			}
+			bodyIndex = 1;
+			joint->flipHorizontal(true);
 		}
 
-		if (MoBodyFramePtr frame1 = joint->frame(body, frameIndex))
+		if (bodyIndex >= 0)
 		{
-			joint->diagramRowColumn(nextRow, nextColumn);
-			if (frameIndex == 1)
-				joint->diagramFlipHorizontal(true);
-			body->nextDiagramInterface(frame1);
-
-			MoBodyFrameWPtr wFrame2 = frameIndex == 0 ? joint->frame1() : joint->frame2();
-			if (auto frame2 = wFrame2.lock())
+			joint->diagramPosition(x, nextY+10);
+	
+			if (MoBodyPtr body2 = joint->body(bodyIndex == 1 ? 0 : 1))
 			{
-				if (MoBodyPtr body2 = frame2->body())
+				if (!body2->inDiagram())
 				{
-					if (!body2->inDiagram())
-					{
-						if (!body2->grounded())
-						{
-							layout(body2, nextRow, nextColumn + 1);
-						}
-					}
-					else
-					{
-						body2->nextDiagramInterface(frame2);
-					}
+					layout(body2, x + 40, nextY);
 				}
 			}
 		}
-		++nextRow;
+		nextY += 40;
 	}
 }
 

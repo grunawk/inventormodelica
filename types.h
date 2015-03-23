@@ -2,8 +2,6 @@
 #include <memory>
 #include <string>
 
-typedef std::basic_string<wchar_t, std::char_traits<wchar_t> > UTxString;
-
 class MoBase;
 typedef std::shared_ptr<MoBase> MoBasePtr;
 

@@ -2,6 +2,7 @@
 
 #include "MoBase.h"
 #include "MoBody.h"
+#include <array>
 
 class MoJoint : public MoBase
 {
@@ -9,25 +10,17 @@ public:
 	MoJoint(void);
 	virtual ~MoJoint(void);
 
-	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const;
-	bool connections(FILE* moFile, MoDiagram& moDiagram) const;
-
-	void frame1(MoBodyFrameWPtr frame) { m_frame1 = frame; }
-	void frame2(MoBodyFrameWPtr frame) { m_frame2 = frame; }
-
-	MoBodyFrameWPtr frame1() const { return m_frame1; }
-	MoBodyFrameWPtr frame2() const { return m_frame2; }
+	const AcGeMatrix3d& frame(size_t i) const;
+	MoBodyPtr body(size_t i) const;
 
 	enum Type { eRevolute, ePrismatic };
 
 	Type type() const { return m_type; }
 	void type(Type t) { m_type = t; }
 
-	MoBodyFramePtr frame(MoBodyPtr& body, size_t& frameIndex);
-
-	MoBodyPtr body(size_t index);
-
-	void diagramFlipHorizontal(bool flip) { m_diagramFlipHorizontal = flip; }
+	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const;
+	bool connections(FILE* moFile, MoDiagram& moDiagram) const;
+	static bool writeDefinition(FILE* moFile, Type type);
 
 	virtual LPCTSTR baseName() const
 	{
@@ -44,8 +37,8 @@ private:
 
 private:
 	Type m_type;
-	MoBodyFrameWPtr m_frame1, m_frame2;
-	bool m_diagramFlipHorizontal;
+	AcGeMatrix3d m_bodyFrame1, m_bodyFrame2;
+	MoBodyWPtr m_body1, m_body2;
 };
 
 
