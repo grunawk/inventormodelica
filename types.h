@@ -9,10 +9,6 @@ class MoBody;
 typedef std::weak_ptr<MoBody>  MoBodyWPtr;
 typedef std::shared_ptr<MoBody>  MoBodyPtr;
 
-class MoBodyFrame;
-typedef std::shared_ptr<MoBodyFrame> MoBodyFramePtr;
-typedef std::weak_ptr<MoBodyFrame> MoBodyFrameWPtr;
-
 class MoJoint;
 typedef std::shared_ptr<MoJoint> MoJointPtr;
 

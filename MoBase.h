@@ -12,7 +12,7 @@ public:
 	MoBase(MoId id=0);
 	virtual ~MoBase(void);
 
-	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const = 0;
+	virtual bool write(FILE* moFile) const = 0;
 	virtual LPCTSTR baseName() const = 0;
 
 	MoId id() const { return m_id; }
@@ -28,6 +28,7 @@ public:
 	void flipHorizontal(bool flip) { m_flipHorizontal = flip; }
 	double rotation() const { return m_rotation; }
 	void rotation(double r) { m_rotation = r; }
+	bool extendDiagram(double& xMax, double& yMin) const;
 	
 	std::wstring placement() const;
 	std::wstring connection(double x1, double y1, double x2, double y2) const;

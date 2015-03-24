@@ -22,7 +22,7 @@ void MoBody::addMass(double mass, const AcGePoint3d& cg, const MIxInertiaTensor&
 	m_inertia += inertia;
 }
 
-bool MoBody::write(FILE* moFile, MoDiagram& moDiagram) const
+bool MoBody::write(FILE* moFile) const
 {
 	std::wstring nameStr = name();
 
@@ -46,7 +46,7 @@ bool MoBody::write(FILE* moFile, MoDiagram& moDiagram) const
 	_ftprintf_s(moFile, L"  equation\n");
 
 	// connect frame interface to body frame
-	_ftprintf_s(moFile, L"    connect(body1.frame_a, frame) annotation(Line(points = {{0, 0}, {0, -100}}, color = {95, 95, 95}));\n"));
+	_ftprintf_s(moFile, L"    connect(body1.frame_a, frame) annotation(Line(points = {{0, 0}, {0, -100}}, color = {95, 95, 95}));\n");
 
 	// --- diagram and icon annotations for definition
 

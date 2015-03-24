@@ -2,7 +2,6 @@
 #include "MoAssembly.h"
 #include "MoJoint.h"
 #include "MoBody.h"
-#include "MoBodyFrame.h"
 #include "MoDiagram.h"
 
 MoAssembly::MoAssembly(void)
@@ -15,39 +14,47 @@ MoAssembly::~MoAssembly(void)
 
 bool MoAssembly::write(FILE* moFile) const
 {
-	MoDiagram moDiagram;
+	bool defineRevolute = false;
+	bool definePrismatic = false;
 
-	double xMax = 20;
-	double yMax = 30;
+	double xMax = 0;
+	double yMin = 0;
+
+	if (!extendDiagram(xMax, yMin))
+		return false;
+
 	for (auto moBody: m_bodies)
-	{
-		if (!moBody->inDiagram())
+		if (!moBody->extendDiagram(xMax,yMin))
 			return false;
-
-		if (moBody->diagramX() > xMax)
-			xMax = moBody->diagramX();
-	}
 
 	for (auto moJoint: m_joints)
 	{
-		if (!moJoint->inDiagram())
+		if (!moJoint->extendDiagram(xMax,yMin))
 			return false;
-
-		if (moJoint->diagramX() > xMax)
-			xMax = moJoint->diagramX();
+		else if (moJoint->type() == MoJoint::eRevolute)
+			defineRevolute = true;
+		else
+			definePrismatic = true;
 	}
 
-	xMax +=
+	xMax += 30;
+	yMin -= 30;
 
 	_ftprintf_s(moFile, L"model %s\n", name().c_str());
 
-	for (auto moBody: m_bodies)
-		moBody->write(moFile, moDiagram);
+	if (defineRevolute)
+		MoJoint::writeDefinition(moFile, MoJoint::eRevolute);
 
-	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(%s);\n", moDiagram.placement(*this).c_str());
+	if (definePrismatic)
+		MoJoint::writeDefinition(moFile, MoJoint::ePrismatic);
+
+	for (auto moBody: m_bodies)
+		moBody->write(moFile);
+
+	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(%s);\n", placement().c_str());
 
 	for (auto moJoint: m_joints)
-		moJoint->write(moFile, moDiagram);
+		moJoint->write(moFile);
 
 	_ftprintf_s(moFile, L"equation\n");
 
@@ -69,7 +76,7 @@ bool MoAssembly::write(FILE* moFile) const
 	}
 
 	for (auto moJoint: m_joints)
-		moJoint->connections(moFile, moDiagram);
+		moJoint->connections(moFile);
 
 	_ftprintf_s(moFile, L"  annotation("
 						L"Diagram(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2}))"
@@ -88,9 +95,10 @@ bool MoAssembly::write(FILE* moFile) const
 
 void MoAssembly::layout()
 {
-	// world location in top/right
-	diagramPosition(20.0,30.0);
-	double y = 20.0;
+	// world location in top/right. y goes negative, x goes positive
+	diagramPosition(20.0,-30.0);
+	double x = 60;	// 20 + 10 to edge of world + gap of 20 + 10 to center of next = 60
+	double y = -20; // -10 gap from top - 10 to center of next element (body)
 
 	// first start with grounded bodies
 	for (auto& body: m_bodies)
@@ -100,7 +108,7 @@ void MoAssembly::layout()
 
 		if (body->grounded())
 		{
-			layout(body, 60, y);
+			layout(body, x, y);
 		}
 	}
 
@@ -110,7 +118,7 @@ void MoAssembly::layout()
 		if (body->inDiagram())
 			continue;
 
-		layout(body, 60, y);
+		layout(body, x, y);
 	}
 }
 
@@ -120,8 +128,6 @@ void MoAssembly::layout(MoBodyPtr& body, double x, double& nextY)
 
 	for (auto& joint: m_joints)
 	{
-		size_t frameIndex;
-
 		int bodyIndex = -1;
 
 		if (joint->body(0) == body)
@@ -144,7 +150,7 @@ void MoAssembly::layout(MoBodyPtr& body, double x, double& nextY)
 				}
 			}
 		}
-		nextY += 40;
+		nextY -= 40;
 	}
 }
 

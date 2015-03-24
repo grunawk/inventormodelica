@@ -38,6 +38,8 @@ std::wstring MoBase::placement() const
 		_stprintf_s<MAX_PATH>(str,L"Placement(visible = true, transformation(origin = {%f, %f}, extent = {{%f, %f}, {%f, %f}}, rotation = %f)));\n", m_x, m_y, flip[0], flip[1], flip[2], flip[3], m_rotation);
 	else
 		_stprintf_s<MAX_PATH>(str,L"Placement(visible = true, transformation(origin = {%f, %f}, extent = {{%f, %f}, {%f, %f}}, rotation = %f)));\n", m_x, m_y, ext[0], ext[1], ext[2], ext[3], m_rotation);
+
+	return str;
 }
 
 std::wstring MoBase::connection(double x1, double y1, double x2, double y2) const
@@ -54,4 +56,20 @@ std::wstring MoBase::connection(double x1, double y1, double x2, double y2) cons
 	{
 		_stprintf_s<MAX_PATH>(str, L"Line(points = {{%f, %f}, {%f, %f}, {%f, %f}, {%f, %f}}, color = {95, 95, 95})", x1, y1, x1, y1-10, x2, y1-10, x2, y2);
 	}
+
+	return str;
+}
+
+bool MoBase::extendDiagram(double& xMax, double& yMin) const
+{
+	if (!inDiagram())
+		return false;
+
+	if (diagramX() > xMax)
+		xMax = diagramX();
+
+	if (diagramY() < yMin)
+		yMin = diagramY();
+
+	return true;
 }

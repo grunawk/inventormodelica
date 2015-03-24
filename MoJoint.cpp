@@ -60,7 +60,12 @@ bool MoJoint::writeDefinition(FILE* moFile, MoJoint::Type type)
 	case ePrismatic:
 		_ftprintf_s(moFile, jointDef[1]);
 		break;
+
+	default:
+		return false;
 	}
+
+	return true;
 }
 
 MoJoint::MoJoint(void) :
@@ -73,7 +78,16 @@ MoJoint::~MoJoint(void)
 {
 }
 
-bool MoJoint::write(FILE* moFile, MoDiagram& moDiagram) const
+void MoJoint::init(MoBodyWPtr b1, const AcGeMatrix3d& bodyFrame1, MoBodyWPtr b2, const AcGeMatrix3d& bodyFrame2)
+{
+	m_body1 = b1;
+	m_bodyFrame1 = bodyFrame1;
+
+	m_body2 = b2;
+	m_bodyFrame2 = bodyFrame2;
+}
+
+bool MoJoint::write(FILE* moFile) const
 {
 	TCHAR* typeNames[2] = { L"Revolute", L"Prismatic" };
 
@@ -89,7 +103,7 @@ bool MoJoint::write(FILE* moFile, MoDiagram& moDiagram) const
 	return true;
 }
 
-bool MoJoint::connections(FILE* moFile, MoDiagram& moDiagram) const
+bool MoJoint::connections(FILE* moFile) const
 {
 	MoBodyPtr b1, b2;
 	TCHAR* frame1;
@@ -136,5 +150,5 @@ const AcGeMatrix3d& MoJoint::frame(size_t index) const
 	if (index == 0)
 		return m_bodyFrame1;
 	else
-		return m_bodyFrame2);
+		return m_bodyFrame2;
 }

@@ -13,7 +13,6 @@
 #include "MassProp.h"
 #include "MoAssembly.h"
 #include "MoBody.h"
-#include "MoBodyFrame.h"
 #include "moJoint.h"
 
 // Thumbnail utils
@@ -473,7 +472,10 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 					}
 
 					if (b1 == b2)
+					{
+						ASSERT(0);
 						continue;
+					}
 
 					IDispatchPtr pGeometry1 = nullptr;
 					IDispatchPtr pGeometry2 = nullptr;
@@ -532,13 +534,8 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 					transform2.setCoordSystem(origin2, xAxis2, yAxis2, zAxis2);
 
 					auto joint = std::make_shared<MoJoint>();
+					joint->init(b1, transform1, b2, transform2);
 					joint->type(MoJoint::eRevolute);
-					MoBodyFramePtr bf1 = std::make_shared<MoBodyFrame>(b1, transform1);
-					MoBodyFramePtr bf2 = std::make_shared<MoBodyFrame>(b2, transform1);
-					b1->addBodyFrame(bf1);
-					b2->addBodyFrame(bf2);
-					joint->frame1(bf1);
-					joint->frame2(bf2);
 
 					moJoints.push_back(joint);
 					moAssembly->addJoint(joint);

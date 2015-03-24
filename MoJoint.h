@@ -10,6 +10,8 @@ public:
 	MoJoint(void);
 	virtual ~MoJoint(void);
 
+	void init(MoBodyWPtr b1, const AcGeMatrix3d& bodyFrame1, MoBodyWPtr b2, const AcGeMatrix3d& bodyFrame2);
+
 	const AcGeMatrix3d& frame(size_t i) const;
 	MoBodyPtr body(size_t i) const;
 
@@ -18,8 +20,8 @@ public:
 	Type type() const { return m_type; }
 	void type(Type t) { m_type = t; }
 
-	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const;
-	bool connections(FILE* moFile, MoDiagram& moDiagram) const;
+	virtual bool write(FILE* moFile) const;
+	bool connections(FILE* moFile) const;
 	static bool writeDefinition(FILE* moFile, Type type);
 
 	virtual LPCTSTR baseName() const

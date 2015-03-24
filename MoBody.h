@@ -12,7 +12,7 @@ public:
 	MoBody(void);
 	virtual ~MoBody(void);
 
-	virtual bool write(FILE* moFile, MoDiagram& moDiagram) const;
+	virtual bool write(FILE* moFile) const;
 
 	void addMass(double mass, const AcGePoint3d& cg, const MIxInertiaTensor& inertia);
 
