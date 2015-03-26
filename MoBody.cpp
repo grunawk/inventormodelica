@@ -1,11 +1,8 @@
 #include "stdafx.h"
 #include "MoBody.h"
-#include "MoDiagram.h"
-
-MoId MoBody::m_lastId = 0;
 
 MoBody::MoBody(void) :
-	MoBase(++m_lastId),
+	MoBase(),
 	m_cg(AcGePoint3d::kOrigin),
 	m_mass(0.0)
 {
@@ -41,7 +38,7 @@ bool MoBody::write(FILE* moFile) const
 				m_cg[0], m_cg[1], m_cg[2]);
 
 	// frame interface
-	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Interfaces.Frame_a frame annotation(Placement(visible = true, transformation(origin = 0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90), iconTransformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));\n");
+	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Interfaces.Frame_a frame annotation(Placement(visible = true, transformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90), iconTransformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));\n");
 
 	_ftprintf_s(moFile, L"  equation\n");
 
@@ -53,20 +50,21 @@ bool MoBody::write(FILE* moFile) const
 	_ftprintf_s(moFile, L"    annotation("
 						L"Diagram(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2}))"
 						L", Icon(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2})");
+//						L", Text(origin = {-12, 121}, extent = {{-128, 19}, {152, -21}}, textString = \"%%name%%\")");
 
 	// icon thumbnail if present
 	if (m_thumbnail.empty())
 		_ftprintf_s(moFile, L"));\n"); // close Icon and annotation
 	else
-		_ftprintf_s(moFile, L", graphics = {Bitmap(origin = {0, 0}, extent = {-100, -100}, {100, 100}}, imageSource = \"%S\")}));\n",
+		_ftprintf_s(moFile, L", graphics = {Bitmap(origin = {0, 0}, extent = {{-100, -100}, {100, 100}}, imageSource = \"%S\"), Text(extent = {{-150, 145}, {150, 105}}, textString = \"%%name\", lineColor = {0, 0, 255})}));\n",
 			m_thumbnail.c_str());
 
-	_ftprintf_s(moFile, L"  end %s;\n", name().c_str());
+	_ftprintf_s(moFile, L"  end %s;\n\n", name().c_str());
 
 	// --- end definition
 
 	// occurrence
-	_ftprintf_s(moFile, L"  %s %s_1 annotation(%s);\n", nameStr.c_str(), nameStr.c_str(), placement().c_str());
+	_ftprintf_s(moFile, L"  %s %s_1 annotation(%s);\n\n", nameStr.c_str(), nameStr.c_str(), placement().c_str());
 
 	return true;
 }

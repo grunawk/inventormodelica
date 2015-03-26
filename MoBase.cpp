@@ -2,8 +2,8 @@
 #include "MoBase.h"
 
 
-MoBase::MoBase(MoId id) :
-	m_id(id),
+MoBase::MoBase() :
+	m_id(0),
 	m_x(0.0),
 	m_y(0.0),
 	m_rotation(0.0),
@@ -31,13 +31,13 @@ std::wstring MoBase::name() const
 std::wstring MoBase::placement() const
 {
 	static double ext[] = {-10, -10, 10, 10};
-	static double flip[] = {-10, 10, 10, -10};
+	static double flip[] = {10, -10, -10, 10};
 
 	TCHAR str[MAX_PATH];
 	if (m_flipHorizontal)
-		_stprintf_s<MAX_PATH>(str,L"Placement(visible = true, transformation(origin = {%f, %f}, extent = {{%f, %f}, {%f, %f}}, rotation = %f)));\n", m_x, m_y, flip[0], flip[1], flip[2], flip[3], m_rotation);
+		_stprintf_s<MAX_PATH>(str,L"Placement(visible = true, transformation(origin = {%f, %f}, extent = {{%f, %f}, {%f, %f}}, rotation = %f))", m_x, m_y, flip[0], flip[1], flip[2], flip[3], m_rotation);
 	else
-		_stprintf_s<MAX_PATH>(str,L"Placement(visible = true, transformation(origin = {%f, %f}, extent = {{%f, %f}, {%f, %f}}, rotation = %f)));\n", m_x, m_y, ext[0], ext[1], ext[2], ext[3], m_rotation);
+		_stprintf_s<MAX_PATH>(str,L"Placement(visible = true, transformation(origin = {%f, %f}, extent = {{%f, %f}, {%f, %f}}, rotation = %f))", m_x, m_y, ext[0], ext[1], ext[2], ext[3], m_rotation);
 
 	return str;
 }

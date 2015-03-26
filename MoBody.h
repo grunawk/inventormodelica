@@ -24,11 +24,11 @@ public:
 	virtual LPCTSTR baseName() const { return L"rigidBody"; }
 
 private:
-	static MoId			m_lastId;
 
 	double				m_mass;
 	MIxInertiaTensor	m_inertia;
 	AcGePoint3d			m_cg;
 	bool				m_grounded;
+
 	std::string			m_thumbnail;
 };

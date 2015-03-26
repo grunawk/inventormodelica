@@ -9,7 +9,7 @@ class MoDiagram;
 class MoBase
 {
 public:
-	MoBase(MoId id=0);
+	MoBase();
 	virtual ~MoBase(void);
 
 	virtual bool write(FILE* moFile) const = 0;

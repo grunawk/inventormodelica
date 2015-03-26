@@ -15,27 +15,17 @@ public:
 	const AcGeMatrix3d& frame(size_t i) const;
 	MoBodyPtr body(size_t i) const;
 
-	enum Type { eRevolute, ePrismatic };
+	enum Type { eRevolute=0, ePrismatic, eRigid, eLastJoint=eRigid };
 
 	Type type() const { return m_type; }
 	void type(Type t) { m_type = t; }
 
 	virtual bool write(FILE* moFile) const;
 	bool connections(FILE* moFile) const;
-	static bool writeDefinition(FILE* moFile, Type type);
 
-	virtual LPCTSTR baseName() const
-	{
-		switch(m_type)
-		{
-		case eRevolute:		return L"revolute";
-		case ePrismatic:	return L"slider";
-		default:			return L"joint";
-		}
-	}
+	static bool writeDefinitions(FILE* moFile, const std::vector<MoJointPtr>& joints);
 
-private:
-	static int m_lastId;
+	virtual LPCTSTR baseName() const;
 
 private:
 	Type m_type;

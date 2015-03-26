@@ -2,9 +2,10 @@
 #include "MoAssembly.h"
 #include "MoJoint.h"
 #include "MoBody.h"
-#include "MoDiagram.h"
 
-MoAssembly::MoAssembly(void)
+MoAssembly::MoAssembly(void) :
+	m_lastBodyId(0),
+	m_lastJointId(0)
 {
 }
 
@@ -12,21 +13,38 @@ MoAssembly::~MoAssembly(void)
 {
 }
 
+void MoAssembly::addBody(const MoBodyPtr& body)
+{
+	m_bodies.push_back(body);
+	body->id(++m_lastBodyId);
+}
+
+void MoAssembly::addJoint(const MoJointPtr& joint)
+{
+	m_joints.push_back(joint);
+	joint->id(++m_lastJointId);
+}
+
 bool MoAssembly::write(FILE* moFile) const
 {
 	bool defineRevolute = false;
 	bool definePrismatic = false;
 
+	// diagram upperleft is 0,0 and lowerright is -X,Y
+
 	double xMax = 0;
 	double yMin = 0;
 
+	// include "world" in diagram extents
 	if (!extendDiagram(xMax, yMin))
 		return false;
 
+	// include bodies in diagram extents
 	for (auto moBody: m_bodies)
 		if (!moBody->extendDiagram(xMax,yMin))
 			return false;
 
+	// include joints in diagram extents and also check for needed definitions
 	for (auto moJoint: m_joints)
 	{
 		if (!moJoint->extendDiagram(xMax,yMin))
@@ -37,21 +55,18 @@ bool MoAssembly::write(FILE* moFile) const
 			definePrismatic = true;
 	}
 
+	// add border
 	xMax += 30;
 	yMin -= 30;
 
-	_ftprintf_s(moFile, L"model %s\n", name().c_str());
+	_ftprintf_s(moFile, L"model %s\n\n", name().c_str());
 
-	if (defineRevolute)
-		MoJoint::writeDefinition(moFile, MoJoint::eRevolute);
+	MoJoint::writeDefinitions(moFile, m_joints);
 
-	if (definePrismatic)
-		MoJoint::writeDefinition(moFile, MoJoint::ePrismatic);
+	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(%s);\n\n", placement().c_str());
 
 	for (auto moBody: m_bodies)
 		moBody->write(moFile);
-
-	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(%s);\n", placement().c_str());
 
 	for (auto moJoint: m_joints)
 		moJoint->write(moFile);
@@ -64,13 +79,13 @@ bool MoAssembly::write(FILE* moFile) const
 		{
 			if (moBody->diagramX() > 60)
 			{
-				_ftprintf_s(moFile, L"  connect(world.frame_b, %s.frame) annotation(%s);\n",
-					moBody->name().c_str(), connection(moBody->diagramX(), moBody->diagramY()-10, diagramX()+10, diagramY()));
+				_ftprintf_s(moFile, L"  connect(%s_1.frame, world.frame_b) annotation(%s);\n",
+					moBody->name().c_str(), connection(moBody->diagramX(), moBody->diagramY()-10, diagramX()+10, diagramY()).c_str());
 			}
 			else
 			{
-				_ftprintf_s(moFile, L"  connect(%s.frame, world.frame_b) annotation(%s);\n",
-					moBody->name().c_str(), connection(diagramX()+10, diagramY(), moBody->diagramX(), moBody->diagramY()-10));
+				_ftprintf_s(moFile, L"  connect(world.frame_b, %s_1.frame) annotation(%s);\n",
+					moBody->name().c_str(), connection(diagramX()+10, diagramY(), moBody->diagramX(), moBody->diagramY()-10).c_str());
 			}
 		}
 	}
@@ -79,8 +94,9 @@ bool MoAssembly::write(FILE* moFile) const
 		moJoint->connections(moFile);
 
 	_ftprintf_s(moFile, L"  annotation("
-						L"Diagram(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2}))"
-						L", Icon(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2})");
+						L"Diagram(coordinateSystem(extent = {{0, 0}, {%f, %f}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2}))"
+						L", Icon(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2})",
+						xMax, yMin);
 
 	if (m_thumbnail.empty())
 		_ftprintf_s(moFile, L"));\n"); // close Icon and annotation
@@ -109,6 +125,7 @@ void MoAssembly::layout()
 		if (body->grounded())
 		{
 			layout(body, x, y);
+			y -= 40;
 		}
 	}
 
@@ -119,15 +136,21 @@ void MoAssembly::layout()
 			continue;
 
 		layout(body, x, y);
+		y -= 40;
 	}
 }
 
 void MoAssembly::layout(MoBodyPtr& body, double x, double& nextY)
 {
 	body->diagramPosition(x, nextY);
+	x += 40;
 
+	bool firstJoint = true;
 	for (auto& joint: m_joints)
 	{
+		if (joint->inDiagram())
+			continue;
+
 		int bodyIndex = -1;
 
 		if (joint->body(0) == body)
@@ -140,7 +163,12 @@ void MoAssembly::layout(MoBodyPtr& body, double x, double& nextY)
 
 		if (bodyIndex >= 0)
 		{
-			joint->diagramPosition(x, nextY+10);
+			if (firstJoint)
+				firstJoint = false;
+			else
+				nextY -= 40;
+
+			joint->diagramPosition(x, nextY-10);
 	
 			if (MoBodyPtr body2 = joint->body(bodyIndex == 1 ? 0 : 1))
 			{
@@ -150,7 +178,6 @@ void MoAssembly::layout(MoBodyPtr& body, double x, double& nextY)
 				}
 			}
 		}
-		nextY -= 40;
 	}
 }
 

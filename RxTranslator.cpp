@@ -446,46 +446,52 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 		for (long i = 0 ; i < rigidBodyJoints->Count ; ++i)
 		{
 			RigidBodyJointPtr rigidBodyJoint = rigidBodyJoints->GetItem( i+1 );
-			if (!rigidBodyJoint)
+			if (!rigidBodyJoint || (rigidBodyJoint->GetJointType() != kConCentricCircleCircleJoint &&
+									rigidBodyJoint->GetJointType() != kTranslationalJoint &&
+									rigidBodyJoint->GetJointType() != kWeldJoint))
 				continue; 
+
+			std::shared_ptr<MoBody> b1, b2;
+			auto rg1 = rigidBodyJoint->GetGroupOne();
+			if (rg1)
+			{
+				auto i = moBodies.find(rg1->GetGroupID());
+				if (i == moBodies.end())
+					continue;
+				b1 = i->second;
+			}
+					
+			auto rg2 = rigidBodyJoint->GetGroupTwo();
+			if (rg2)
+			{
+				auto i = moBodies.find(rg2->GetGroupID());
+				if (i == moBodies.end())
+					continue;
+				b2 = i->second;
+			}
+
+			if (b1 == b2)
+			{
+				ASSERT(0);
+				continue;
+			}
+
+			IDispatchPtr pGeometry1 = nullptr;
+			IDispatchPtr pGeometry2 = nullptr;
+			NameValueMapPtr pAdditionalInfo = nullptr;
+			m_pApplication->TransientObjects->CreateNameValueMap( &pAdditionalInfo );
+
+			hr = rigidBodyJoint->GetJointData(&pGeometry1, &pGeometry2, &pAdditionalInfo);
+			if (FAILED(hr))
+			{
+				ASSERT(0);
+				continue;
+			}
+
 			switch (rigidBodyJoint->GetJointType())
 			{
 			case kConCentricCircleCircleJoint:
 				{
-					std::shared_ptr<MoBody> b1, b2;
-					auto rg1 = rigidBodyJoint->GetGroupOne();
-					if (rg1)
-					{
-						auto i = moBodies.find(rg1->GetGroupID());
-						if (i == moBodies.end())
-							continue;
-						b1 = i->second;
-					}
-					
-					auto rg2 = rigidBodyJoint->GetGroupTwo();
-					if (rg2)
-					{
-						auto i = moBodies.find(rg2->GetGroupID());
-						if (i == moBodies.end())
-							continue;
-						b2 = i->second;
-					}
-
-					if (b1 == b2)
-					{
-						ASSERT(0);
-						continue;
-					}
-
-					IDispatchPtr pGeometry1 = nullptr;
-					IDispatchPtr pGeometry2 = nullptr;
-					NameValueMapPtr pAdditionalInfo = nullptr;
-					m_pApplication->TransientObjects->CreateNameValueMap( &pAdditionalInfo );
-
-					hr = rigidBodyJoint->GetJointData(&pGeometry1, &pGeometry2, &pAdditionalInfo);
-					if (FAILED(hr))
-						continue;
-
 					double rad;
 
 					CirclePtr cir1( pGeometry1);
@@ -540,6 +546,71 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 					moJoints.push_back(joint);
 					moAssembly->addJoint(joint);
 				}
+				break;
+
+			case kTranslationalJoint:
+				{
+					bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
+					auto joint = std::make_shared<MoJoint>();
+					AcGeMatrix3d transform1, transform2;
+					joint->init(b1, transform1, b2, transform2);
+					joint->type(MoJoint::eRigid);
+
+					moJoints.push_back(joint);
+					moAssembly->addJoint(joint);
+				}
+				break;
+
+			case kWeldJoint:
+				{
+					bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
+					if (fromJoint)
+					{
+						PointPtr group1Point = pAdditionalInfo->GetValue(L"Group1Point");
+						if (group1Point == nullptr)
+							continue;
+
+						VectorPtr group1Vector1 = pAdditionalInfo->GetValue(L"Group1Vector1");
+						if (group1Vector1 == nullptr)
+							continue;
+
+						VectorPtr group1Vector2 = pAdditionalInfo->GetValue(L"Group1Vector2");
+						if (group1Vector2 == nullptr)
+							continue;
+
+						PointPtr group2Point = pAdditionalInfo->GetValue(L"Group2Point");
+						if (group2Point == nullptr)
+							continue;
+
+						VectorPtr group2Vector1 = pAdditionalInfo->GetValue(L"Group2Vector1");
+						if (group2Vector1 == nullptr)
+							continue;
+
+						VectorPtr group2Vector2 = pAdditionalInfo->GetValue(L"Group2Vector2");
+						if (group2Vector2 == nullptr)
+							continue;
+
+						AcGePoint3d origin1(group1Point->GetX(), group1Point->GetY(), group1Point->GetZ());
+						AcGePoint3d origin2(group2Point->GetX(), group2Point->GetY(), group2Point->GetZ());
+						AcGeVector3d zAxis1(group1Vector1->GetX(), group1Vector1->GetY(), group1Vector1->GetZ());
+						AcGeVector3d xAxis1(group1Vector2->GetX(), group1Vector2->GetY(), group1Vector2->GetZ());
+						AcGeVector3d zAxis2(group2Vector1->GetX(), group2Vector1->GetY(), group2Vector1->GetZ());
+						AcGeVector3d xAxis2(group2Vector2->GetX(), group2Vector2->GetY(), group2Vector2->GetZ());
+						AcGeVector3d yAxis1 = zAxis1.crossProduct(xAxis1);
+						AcGeVector3d yAxis2 = zAxis2.crossProduct(xAxis2);
+						AcGeMatrix3d transform1, transform2;
+						transform1.setCoordSystem(origin1, xAxis1, yAxis1, zAxis1);
+						transform2.setCoordSystem(origin2, xAxis2, yAxis2, zAxis2);
+
+						auto joint = std::make_shared<MoJoint>();
+						joint->init(b1, transform1, b2, transform2);
+						joint->type(MoJoint::eRigid);
+
+						moJoints.push_back(joint);
+						moAssembly->addJoint(joint);
+					}
+				}
+				break;
 			}
 		}
 	}
