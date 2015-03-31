@@ -1,10 +1,13 @@
 #include "stdafx.h"
 #include "MoBody.h"
 
+double zero3[] = {0.0, 0.0, 0.0};
+
 MoBody::MoBody(void) :
 	MoBase(),
 	m_cg(AcGePoint3d::kOrigin),
-	m_mass(0.0)
+	m_mass(0.0),
+	m_inertia(zero3,zero3)
 {
 }
 
@@ -15,8 +18,10 @@ MoBody::~MoBody(void)
 void MoBody::addMass(double mass, const AcGePoint3d& cg, const MIxInertiaTensor& inertia)
 {
 	m_mass += mass;
-	m_cg += cg.asVector();
-	m_inertia += inertia;
+	m_cg += (cg.asVector() * .01); // convert to m
+	MIxInertiaTensor inertiaConverted = inertia;
+	inertiaConverted *= .0001; // convert kg *cm^2 to kg * m^2
+	m_inertia += inertiaConverted;
 }
 
 bool MoBody::write(FILE* moFile) const
