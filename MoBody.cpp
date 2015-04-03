@@ -1,13 +1,11 @@
 #include "stdafx.h"
 #include "MoBody.h"
 
-double zero3[] = {0.0, 0.0, 0.0};
-
 MoBody::MoBody(void) :
 	MoBase(),
-	m_cg(AcGePoint3d::kOrigin),
+	m_cg(),
 	m_mass(0.0),
-	m_inertia(zero3,zero3)
+	m_inertia(Vector3d::kZero, Vector3d::kZero)
 {
 }
 
@@ -15,11 +13,11 @@ MoBody::~MoBody(void)
 {
 }
 
-void MoBody::addMass(double mass, const AcGePoint3d& cg, const MIxInertiaTensor& inertia)
+void MoBody::addMass(double mass, const Vector3d& cg, const InertiaTensor& inertia)
 {
 	m_mass += mass;
-	m_cg += (cg.asVector() * .01); // convert to m
-	MIxInertiaTensor inertiaConverted = inertia;
+	m_cg += (cg * .01); // convert to m
+	InertiaTensor inertiaConverted = inertia;
 	inertiaConverted *= .0001; // convert kg *cm^2 to kg * m^2
 	m_inertia += inertiaConverted;
 }
@@ -32,15 +30,12 @@ bool MoBody::write(FILE* moFile) const
 
 	_ftprintf_s(moFile, L"  model %s\n", nameStr.c_str());
 
-	//  Modelica.Mechanics.MultiBody.Parts.Body body1(m = .5, I_11 = 0.1, I_22 = 0.1, I_33 = 0.1, I_21 = 0.2, I_31 = 0.3, I_32 = 0.4, 
-	//  r_CM = {1, 2, 3}, r_0(start = {2, 3, 4})) annotation(Placement(visible = true, transformation(origin = {-44, 18}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
-
-	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Parts.Body body1 (m = %g, I_11 = %g, I_22 = %g, I_33 = %g, I_21 = %g, I_31 = %g, I_32 = %g, r_CM = {%g, %g, %g}) "
+	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Parts.Body body1 (m = %.8g, I_11 = %.8g, I_22 = %.8g, I_33 = %.8g, I_21 = %.8g, I_31 = %.8g, I_32 = %.8g, r_CM = {%.8g, %.8g, %.8g}) "
 						L"annotation(Placement(visible = true, transformation(origin = {0, 10}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n",
 				m_mass,
-				m_inertia.m_momentsOfInertia[0],  m_inertia.m_momentsOfInertia[1],  m_inertia.m_momentsOfInertia[2],
-				m_inertia.m_productsOfInertia[0], m_inertia.m_productsOfInertia[1], m_inertia.m_productsOfInertia[2],
-				m_cg[0], m_cg[1], m_cg[2]);
+				m_inertia.moments()[0],  m_inertia.moments()[1],  m_inertia.moments()[2],
+				m_inertia.products()[0], m_inertia.products()[1], m_inertia.products()[2],
+				m_cg.x(), m_cg.y(), m_cg.z());
 
 	// frame interface
 	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Interfaces.Frame_a frame annotation(Placement(visible = true, transformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90), iconTransformation(origin = {0, -100}, extent = {{-10, -10}, {10, 10}}, rotation = 90)));\n");

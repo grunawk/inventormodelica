@@ -14,6 +14,7 @@
 #include "MoAssembly.h"
 #include "MoBody.h"
 #include "moJoint.h"
+#include "Matrix3d.h"
 
 // Thumbnail utils
 
@@ -415,13 +416,14 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				if (!massProps) continue;
 
 				auto pt = massProps->GetCenterOfMass();
-				AcGePoint3d cg(pt->GetX(), pt->GetY(), pt->GetZ());
+
+				Vector3d cg(pt->GetX(), pt->GetY(), pt->GetZ());
 				double moments[3], products[3];
 				double mass = massProps->GetMass();
 				hr = massProps->XYZMomentsOfInertia(&moments[0], &moments[1], &moments[2], &products[0], &products[1], &products[2]);
 				if (hr == S_OK)
 				{
-					moBody->addMass(massProps->GetMass(), cg, MIxInertiaTensor(moments, products));
+					moBody->addMass(massProps->GetMass(), cg, InertiaTensor(Vector3d(moments[0], moments[1], moments[2]), Vector3d(products[0], products[1], products[2])));
 					if (mass >= largestMass)
 					{
 						bestRepresentative = componentOcc;
@@ -499,8 +501,8 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 					hr = cir1->GetCircleData( &saPt, &saVec, &rad ) ;
 					if (FAILED(hr))
 						continue;
-					AcGePoint3d origin1(saPt[0], saPt[1], saPt[2]);
-					AcGeVector3d zAxis1(saVec[0], saVec[1], saVec[2]);
+					Vector3d origin1(saPt[0], saPt[1], saPt[2]);
+					Vector3d zAxis1(saVec[0], saVec[1], saVec[2]);
 					zAxis1.normalize();
 
 					CirclePtr cir2( pGeometry2);
@@ -508,36 +510,36 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 					hr = cir2->GetCircleData( &saPt2, &saVec2, &rad ) ;
 					if (FAILED(hr))
 						continue;
-					AcGePoint3d origin2(saPt2[0], saPt2[1], saPt2[2]);
-					AcGeVector3d zAxis2(saVec2[0], saVec2[1], saVec2[2]);
+
+					Vector3d origin2(saPt2[0], saPt2[1], saPt2[2]);
+					Vector3d zAxis2(saVec2[0], saVec2[1], saVec2[2]);
 					zAxis2.normalize();
 
-					AcGeVector3d xAxis1 = zAxis1.perpVector();
-					AcGeVector3d xAxis2 = zAxis2.perpVector();
+					Vector3d xAxis1 = zAxis1.perpendicular();
+					Vector3d xAxis2 = zAxis2.perpendicular();
 
 					bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
 					if (fromJoint)
 					{
-						xAxis1.x = pAdditionalInfo->GetValue(L"Vector1aX");
-						xAxis1.y = pAdditionalInfo->GetValue(L"Vector1aY");
-						xAxis1.z = pAdditionalInfo->GetValue(L"Vector1aZ");
+						xAxis1.set(pAdditionalInfo->GetValue(L"Vector1aX"),
+								   pAdditionalInfo->GetValue(L"Vector1aY"),
+								   pAdditionalInfo->GetValue(L"Vector1aZ"));
 
-						xAxis2.x = pAdditionalInfo->GetValue(L"Vector2aX");
-						xAxis2.y = pAdditionalInfo->GetValue(L"Vector2aY");
-						xAxis2.z = pAdditionalInfo->GetValue(L"Vector2aZ");
+						xAxis2.set(pAdditionalInfo->GetValue(L"Vector2aX"),
+								   pAdditionalInfo->GetValue(L"Vector2aY"),
+								   pAdditionalInfo->GetValue(L"Vector2aZ"));
 
-						if (!xAxis1.isZeroLength() && !xAxis2.isZeroLength())
+						if (!xAxis1.isEqualTo(Vector3d::kZero) && !xAxis2.isEqualTo(Vector3d::kZero))
 						{
 							xAxis1.normalize();
 							xAxis2.normalize();
 						}
 					}
 
-					AcGeVector3d yAxis1 = zAxis1.crossProduct(xAxis1);
-					AcGeVector3d yAxis2 = zAxis2.crossProduct(xAxis2);
-					AcGeMatrix3d transform1, transform2;
-					transform1.setCoordSystem(origin1, xAxis1, yAxis1, zAxis1);
-					transform2.setCoordSystem(origin2, xAxis2, yAxis2, zAxis2);
+					Vector3d yAxis1 = zAxis1 * xAxis1;
+					Vector3d yAxis2 = zAxis2 * xAxis2;
+					Matrix3d transform1(origin1, xAxis1, yAxis1, zAxis1);
+					Matrix3d transform2(origin2, xAxis2, yAxis2, zAxis2);
 
 					auto joint = std::make_shared<MoJoint>();
 					joint->init(b1, transform1, b2, transform2);
@@ -552,7 +554,7 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				{
 					bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
 					auto joint = std::make_shared<MoJoint>();
-					AcGeMatrix3d transform1, transform2;
+					Matrix3d transform1, transform2;
 					joint->init(b1, transform1, b2, transform2);
 					joint->type(MoJoint::eRigid);
 
@@ -590,17 +592,16 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 						if (group2Vector2 == nullptr)
 							continue;
 
-						AcGePoint3d origin1(group1Point->GetX(), group1Point->GetY(), group1Point->GetZ());
-						AcGePoint3d origin2(group2Point->GetX(), group2Point->GetY(), group2Point->GetZ());
-						AcGeVector3d zAxis1(group1Vector1->GetX(), group1Vector1->GetY(), group1Vector1->GetZ());
-						AcGeVector3d xAxis1(group1Vector2->GetX(), group1Vector2->GetY(), group1Vector2->GetZ());
-						AcGeVector3d zAxis2(group2Vector1->GetX(), group2Vector1->GetY(), group2Vector1->GetZ());
-						AcGeVector3d xAxis2(group2Vector2->GetX(), group2Vector2->GetY(), group2Vector2->GetZ());
-						AcGeVector3d yAxis1 = zAxis1.crossProduct(xAxis1);
-						AcGeVector3d yAxis2 = zAxis2.crossProduct(xAxis2);
-						AcGeMatrix3d transform1, transform2;
-						transform1.setCoordSystem(origin1, xAxis1, yAxis1, zAxis1);
-						transform2.setCoordSystem(origin2, xAxis2, yAxis2, zAxis2);
+						Vector3d origin1(group1Point->GetX(), group1Point->GetY(), group1Point->GetZ());
+						Vector3d origin2(group2Point->GetX(), group2Point->GetY(), group2Point->GetZ());
+						Vector3d zAxis1(group1Vector1->GetX(), group1Vector1->GetY(), group1Vector1->GetZ());
+						Vector3d xAxis1(group1Vector2->GetX(), group1Vector2->GetY(), group1Vector2->GetZ());
+						Vector3d zAxis2(group2Vector1->GetX(), group2Vector1->GetY(), group2Vector1->GetZ());
+						Vector3d xAxis2(group2Vector2->GetX(), group2Vector2->GetY(), group2Vector2->GetZ());
+						Vector3d yAxis1 = zAxis1 * xAxis1;
+						Vector3d yAxis2 = zAxis2 * xAxis2;
+						Matrix3d transform1(origin1, xAxis1, yAxis1, zAxis1);
+						Matrix3d transform2(origin2, xAxis2, yAxis2, zAxis2);
 
 						auto joint = std::make_shared<MoJoint>();
 						joint->init(b1, transform1, b2, transform2);

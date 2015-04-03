@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "MoJoint.h"
+#include "MoUtil.h"
 
 namespace {
 	TCHAR* jointDef[] =
 	{
 	L"model RevolutePositioned\n"
+	L"  parameter Boolean useAxisFlange = false \"= true, if axis flange is enabled\" annotation(Evaluate = true, HideResult = true, choices(checkBox = true));\n"
 	L"  parameter Modelica.SIunits.Position r1[3] = {0, 0, 0};\n"
 	L"  parameter Modelica.SIunits.Position r2[3] = {0, 0, 0};\n"
 	L"  parameter Modelica.Mechanics.MultiBody.Types.Axis n1_x = {1, 0, 0};\n"
@@ -15,12 +17,12 @@ namespace {
   	L"  Modelica.Mechanics.MultiBody.Parts.FixedRotation fixedrotation2(r = r2, n_x = n2_x, n_y = n2_y, rotationType = Modelica.Mechanics.MultiBody.Types.RotationTypes.TwoAxesVectors) annotation(Placement(visible = true, transformation(origin = {50, 0}, extent = {{10, -10}, {-10, 10}}, rotation = 0)));\n"
 	L"  Modelica.Mechanics.MultiBody.Interfaces.Frame_a frame_a annotation(Placement(visible = true, transformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
 	L"  Modelica.Mechanics.MultiBody.Interfaces.Frame_b frame_b annotation(Placement(visible = true, transformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
-	L"  Modelica.Mechanics.MultiBody.Joints.Revolute joint annotation(Placement(visible = true, transformation(origin = {0, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
-//	L"  Modelica.Mechanics.Rotational.Interfaces.Flange_a flange_a annotation(Placement(visible = true, transformation(origin = {0, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {0, 70}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
-//	L"  Modelica.Mechanics.Rotational.Interfaces.Flange_b flange_b annotation(Placement(visible = true, transformation(origin = {-50, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-50, 50}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
+	L"  Modelica.Mechanics.MultiBody.Joints.Revolute joint(useAxisFlange=useAxisFlange) annotation(Placement(visible = true, transformation(origin = {0, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
+	L"	Modelica.Mechanics.Rotational.Interfaces.Flange_a axis if useAxisFlange annotation(Placement(visible = true, transformation(origin = {0, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-50, 70}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
+	L"	Modelica.Mechanics.Rotational.Interfaces.Flange_b support if useAxisFlange annotation(Placement(visible = true, transformation(origin = {-52, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {0, 70}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
 	L"equation\n"
-//	L"  connect(flange_a, revolute1.axis) annotation(Line(points = {{0, 100}, {0, 10}}));\n"
-//	L"  connect(flange_b, revolute1.support) annotation(Line(points = {{-50, 100}, {-50, 40}, {-6, 40}, {-6, 10}}));\n"
+	L"  connect(support, joint.support) annotation(Line(points = {{-52, 100}, {-52, 55}, {-6, 55}, {-6, 10}}));\n"
+	L"  connect(axis, joint.axis) annotation(Line(points = {{0, 100}, {0, 10}}));\n"
 	L"  connect(fixedrotation1.frame_a, frame_a) annotation(Line(points = {{-60, 0}, {-100, 0}, {-100, 0}, {-100, 0}}, color = {95, 95, 95}));\n"
 	L"  connect(joint.frame_a, fixedrotation1.frame_b) annotation(Line(points = {{10, 0}, {40, 0}, {40, 0}, {40, 0}}, color = {95, 95, 95}));\n"
 	L"  connect(fixedrotation2.frame_b, joint.frame_b) annotation(Line(points = {{-40, 0}, {-10, 0}, {-10, 0}, {-10, 0}}, color = {95, 95, 95}));\n"
@@ -29,6 +31,7 @@ namespace {
 	L"end RevolutePositioned;\n\n"
 	,
 	L"model PrismaticPositioned\n"
+	L"  parameter Boolean useAxisFlange = false \"= true, if axis flange is enabled\" annotation(Evaluate = true, HideResult = true, choices(checkBox = true));\n"
 	L"  parameter Modelica.SIunits.Position r1[3] = {0, 0, 0};\n"
 	L"  parameter Modelica.SIunits.Position r2[3] = {0, 0, 0};\n"
 	L"  parameter Modelica.Mechanics.MultiBody.Types.Axis n1_x = {1, 0, 0};\n"
@@ -37,14 +40,14 @@ namespace {
   	L"  parameter Modelica.Mechanics.MultiBody.Types.Axis n2_y = {0, 1, 0};\n"
 	L"  Modelica.Mechanics.MultiBody.Parts.FixedRotation fixedrotation1(r = r1, n_x = n1_x, n_y = n1_y) annotation(Placement(visible = true, transformation(origin = {-50, 0}, extent = {{10, -10}, {-10, 10}}, rotation = 0)));\n"
 	L"  Modelica.Mechanics.MultiBody.Parts.FixedRotation fixedrotation2(r = r2, n_x = n2_x, n_y = n2_y) annotation(Placement(visible = true, transformation(origin = {50, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
-	L"  Modelica.Mechanics.MultiBody.Joints.Prismatic joint annotation(Placement(visible = true, transformation(origin = {0, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
+	L"  Modelica.Mechanics.MultiBody.Joints.Prismatic joint(useAxisFlange=useAxisFlange) annotation(Placement(visible = true, transformation(origin = {0, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
 	L"  Modelica.Mechanics.MultiBody.Interfaces.Frame_a frame_a annotation(Placement(visible = true, transformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
 	L"  Modelica.Mechanics.MultiBody.Interfaces.Frame_b frame_b annotation(Placement(visible = true, transformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
-//	L"  Modelica.Mechanics.Translational.Interfaces.Flange_a flange_a annotation(Placement(visible = true, transformation(origin = {8, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {30, 50}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
-//	L"  Modelica.Mechanics.Translational.Interfaces.Flange_b flange_b annotation(Placement(visible = true, transformation(origin = {-50, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-30, 50}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
+	L"	Modelica.Mechanics.Translational.Interfaces.Flange_a axis if useAxisFlange annotation(Placement(visible = true, transformation(origin = {0, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-50, 70}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
+	L"	Modelica.Mechanics.Translational.Interfaces.Flange_b support if useAxisFlange annotation(Placement(visible = true, transformation(origin = {-52, 100}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {0, 70}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n"
 	L"equation\n"
-//	L"  connect(flange_b, prismatic1.support) annotation(Line(points = {{-50, 100}, {-4, 100}, {-4, 6}, {-4, 6}}, color = {0, 127, 0}));\n"
-//	L"  connect(flange_a, prismatic1.axis) annotation(Line(points = {{8, 100}, {8, 6}}, color = {0, 127, 0}));\n"
+	L"  connect(axis, joint.axis) annotation(Line(points = {{0, 100}, {0, 10}}));\n"
+	L"  connect(fixedrotation1.frame_a, frame_a) annotation(Line(points = {{-60, 0}, {-100, 0}, {-100, 0}, {-100, 0}}, color = {95, 95, 95}));\n"
 	L"  connect(fixedrotation1.frame_b, frame_a) annotation(Line(points = {{-60, 0}, {-100, 0}, {-100, 0}, {-100, 0}}, color = {95, 95, 95}));\n"
 	L"  connect(joint.frame_a, fixedrotation1.frame_a) annotation(Line(points = {{10, 0}, {40, 0}, {40, 0}, {40, 0}}, color = {95, 95, 95}));\n"
 	L"  connect(fixedrotation2.frame_a, joint.frame_b) annotation(Line(points = {{-40, 0}, {-10, 0}, {-10, 0}, {-10, 0}}, color = {95, 95, 95}));\n"
@@ -71,6 +74,8 @@ namespace {
 	L"end RigidPositioned;\n\n"
 	};
 }
+
+using namespace MoUtil;
 
 bool MoJoint::writeDefinitions(FILE* moFile, const std::vector<MoJointPtr>& joints)
 {
@@ -103,18 +108,14 @@ MoJoint::~MoJoint(void)
 {
 }
 
-void MoJoint::init(MoBodyWPtr b1, const AcGeMatrix3d& bodyFrame1, MoBodyWPtr b2, const AcGeMatrix3d& bodyFrame2)
+void MoJoint::init(MoBodyWPtr b1, const Matrix3d& bodyFrame1, MoBodyWPtr b2, const Matrix3d& bodyFrame2)
 {
 	m_body1 = b1;
 	m_bodyFrame1 = bodyFrame1;
-	m_bodyFrame1(0,3) = m_bodyFrame1(0,3) * .01;
-	m_bodyFrame1(1,3) = m_bodyFrame1(1,3) * .01;
-	m_bodyFrame1(2,3) = m_bodyFrame1(2,3) * .01;
+	m_bodyFrame1 *= .01;
 	m_body2 = b2;
 	m_bodyFrame2 = bodyFrame2;
-	m_bodyFrame2(0,3) = m_bodyFrame2(0,3) * .01;
-	m_bodyFrame2(1,3) = m_bodyFrame2(1,3) * .01;
-	m_bodyFrame2(2,3) = m_bodyFrame2(2,3) * .01;
+	m_bodyFrame2 *= .01;
 }
 
 bool MoJoint::write(FILE* moFile) const
@@ -130,32 +131,45 @@ bool MoJoint::write(FILE* moFile) const
 	std::wstring nameStr = name();
 
 	std::wstring initialValues;
-	if (m_type == eRevolute)
+	switch(m_type)
 	{
-		AcGeVector3d xAxis1(m_bodyFrame1(0,0), m_bodyFrame1(1,0), m_bodyFrame1(2,0));
-		AcGeVector3d xAxis2(m_bodyFrame2(0,0), m_bodyFrame2(1,0), m_bodyFrame2(2,0));
-		AcGeVector3d zAxis1(m_bodyFrame1(0,2), m_bodyFrame1(1,2), m_bodyFrame1(2,2));
-		double angle = xAxis1.angleTo(xAxis2, zAxis1);
-		TCHAR str[MAX_PATH];
-		if (angle != 0.0) // tolerance?
+		case eRevolute:
 		{
-			_stprintf_s<MAX_PATH>(str, L"joint.phi(start = %f, fixed = true), ", angle);
+			Vector3d xAxis1(m_bodyFrame1(0,0), m_bodyFrame1(1,0), m_bodyFrame1(2,0));
+			Vector3d xAxis2(m_bodyFrame2(0,0), m_bodyFrame2(1,0), m_bodyFrame2(2,0));
+			Vector3d zAxis1(m_bodyFrame1(0,2), m_bodyFrame1(1,2), m_bodyFrame1(2,2));
+			double angle = xAxis1.angle(xAxis2, zAxis1);
+			TCHAR str[MAX_PATH];
+			_stprintf_s<MAX_PATH>(str, L"joint.phi(start = %s, fixed = true), ", angleString(angle).c_str());
 			initialValues = str;
 		}
+		break;
+
+		case ePrismatic:
+		{
+			Vector3d origin1(m_bodyFrame1(0,3), m_bodyFrame1(1,3), m_bodyFrame1(2,3));
+			Vector3d origin2(m_bodyFrame2(0,3), m_bodyFrame2(1,3), m_bodyFrame2(2,3));
+			Vector3d delta = origin2 - origin1;
+			double distance = delta.length();
+			TCHAR str[MAX_PATH];
+			_stprintf_s<MAX_PATH>(str, L"joint.s(start = %s, fixed = true), ", distanceString(distance).c_str());
+			initialValues = str;
+		}
+		break;
 	}
 
-	_ftprintf_s(moFile, L"  %s %s(%sr1 = {%f, %f, %f}, n1_x = {%f, %f, %f}, n1_y = {%f, %f, %f}, r2 = {%f, %f, %f}, n2_x = {%f, %f, %f}, n2_y = {%f, %f, %f}) annotation(%s);\n\n",
+	_ftprintf_s(moFile, L"  %s %s(%sr1 = %s, n1_x = %s, n1_y = %s, r2 = %s, n2_x = %s, n2_y = %s) annotation(%s);\n\n",
 		typeNames[m_type], name().c_str(),
 
 		initialValues.c_str(),
 
-		m_bodyFrame1(0,3), m_bodyFrame1(1,3), m_bodyFrame1(2,3),
-		m_bodyFrame1(0,0), m_bodyFrame1(1,0), m_bodyFrame1(2,0),
-		m_bodyFrame1(0,1), m_bodyFrame1(1,1), m_bodyFrame1(2,1),
+		pointString (m_bodyFrame1(0,3), m_bodyFrame1(1,3), m_bodyFrame1(2,3)).c_str(),
+		vectorString(m_bodyFrame1(0,0), m_bodyFrame1(1,0), m_bodyFrame1(2,0)).c_str(),
+		vectorString(m_bodyFrame1(0,1), m_bodyFrame1(1,1), m_bodyFrame1(2,1)).c_str(),
 
-		m_bodyFrame2(0,3), m_bodyFrame2(1,3), m_bodyFrame2(2,3),
-		m_bodyFrame2(0,0), m_bodyFrame2(1,0), m_bodyFrame2(2,0),
-		m_bodyFrame2(0,1), m_bodyFrame2(1,1), m_bodyFrame2(2,1),
+		pointString (m_bodyFrame2(0,3), m_bodyFrame2(1,3), m_bodyFrame2(2,3)).c_str(),
+		vectorString(m_bodyFrame2(0,0), m_bodyFrame2(1,0), m_bodyFrame2(2,0)).c_str(),
+		vectorString(m_bodyFrame2(0,1), m_bodyFrame2(1,1), m_bodyFrame2(2,1)).c_str(),
 
 		placement().c_str());
 
@@ -203,7 +217,7 @@ MoBodyPtr MoJoint::body(size_t index) const
 		return m_body2.lock();
 }
 
-const AcGeMatrix3d& MoJoint::frame(size_t index) const
+const Matrix3d& MoJoint::frame(size_t index) const
 {
 	ASSERT(index < 2);
 	if (index == 0)

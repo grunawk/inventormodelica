@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MoBase.h"
-#include <gemat3d.h>
+#include "Vector3d.h"
 #include "MassProp.h"
 
 // MoBody is a Modelica Body
@@ -14,7 +14,7 @@ public:
 
 	virtual bool write(FILE* moFile) const;
 
-	void addMass(double mass, const AcGePoint3d& cg, const MIxInertiaTensor& inertia);
+	void addMass(double mass, const Vector3d& cg, const InertiaTensor& inertia);
 
 	void grounded(bool g) { m_grounded = g; }
 	bool grounded() const { return m_grounded; }
@@ -25,10 +25,10 @@ public:
 
 private:
 
-	double				m_mass;
-	MIxInertiaTensor	m_inertia;
-	AcGePoint3d			m_cg;
-	bool				m_grounded;
+	double			m_mass;
+	InertiaTensor	m_inertia;
+	Vector3d		m_cg;
+	bool			m_grounded;
 
-	std::string			m_thumbnail;
+	std::string		m_thumbnail;
 };

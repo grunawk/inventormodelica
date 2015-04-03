@@ -270,7 +270,7 @@ echo regsvr32 exec. time &gt; "$(OutDir)regsvr32.trg"
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>R:\XInterface\bin;R:\XInterface\InventorSDK\include;R:\lib\debug_x64;C:\3p\GELIB64\$(GELIB64DEV)\api\inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>R:\XInterface\bin;R:\XInterface\InventorSDK\include;R:\lib\debug_x64</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_DEBUG;_WINDOWS;UNICODE;_USRDLL;GE_NO_ACAD;GELIB_NOACAD;GE_LOCATED_NEW;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -290,7 +290,7 @@ echo regsvr32 exec. time &gt; "$(OutDir)regsvr32.trg"
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>Shlwapi.lib;acge.lib;acgex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(Platform)\$(Configuration)\$(ProjectName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\Translator.def</ModuleDefinitionFile>
@@ -300,7 +300,7 @@ echo regsvr32 exec. time &gt; "$(OutDir)regsvr32.trg"
       <ImportLibrary />
       <TargetMachine>MachineX64</TargetMachine>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(_GELIB64)\lib\$(_3pDebug)_100_x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY "$(TargetDir)$(TargetFileName)" R:\lib\$(TargetedSDKConfiguration)_$(PlatformTarget);
@@ -317,10 +317,12 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MassProp.cpp" />
+    <ClCompile Include="Matrix3d.cpp" />
     <ClCompile Include="MoAssembly.cpp" />
     <ClCompile Include="MoBase.cpp" />
     <ClCompile Include="MoBody.cpp" />
     <ClCompile Include="MoJoint.cpp" />
+    <ClCompile Include="MoUtil.cpp" />
     <ClCompile Include="RxTranslator.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -339,6 +341,7 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Optimize|Win32'">MaxSpeed</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Optimize|x64'">MaxSpeed</Optimization>
     </ClCompile>
+    <ClCompile Include="Vector3d.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Translator.rc">
@@ -352,16 +355,20 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
     <ClInclude Include="CommonPreProc.h" />
     <ClInclude Include="GUIDs.h" />
     <ClInclude Include="MassProp.h" />
+    <ClInclude Include="Matrix3d.h" />
     <ClInclude Include="MoAssembly.h" />
     <ClInclude Include="MoBase.h" />
     <ClInclude Include="MoBody.h" />
     <ClInclude Include="MoJoint.h" />
+    <ClInclude Include="MoUtil.h" />
+    <ClInclude Include="Point3d.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RxTranslator.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Translator.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Unknown.h" />
+    <ClInclude Include="Vector3d.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Translator.X.manifest" />

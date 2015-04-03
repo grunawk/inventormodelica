@@ -2,6 +2,9 @@
 #include "MoAssembly.h"
 #include "MoJoint.h"
 #include "MoBody.h"
+#include "MoUtil.h"
+
+using namespace MoUtil;
 
 MoAssembly::MoAssembly(void) :
 	m_lastBodyId(0),

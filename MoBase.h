@@ -20,6 +20,8 @@ public:
 	void name(const std::wstring& n) { m_name = n; }
 	std::wstring name() const;
 
+	// diagram properties and methods
+
 	bool inDiagram() const { return m_inDiagram; }
 	void diagramPosition(double x, double y) { m_x=x; m_y=y; m_inDiagram=true; }
 	double diagramX() const { return m_x; }
@@ -29,9 +31,7 @@ public:
 	double rotation() const { return m_rotation; }
 	void rotation(double r) { m_rotation = r; }
 	bool extendDiagram(double& xMax, double& yMin) const;
-	
 	std::wstring placement() const;
-	std::wstring connection(double x1, double y1, double x2, double y2) const;
 
 private:
 	MoId m_id;
