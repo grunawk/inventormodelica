@@ -9,7 +9,7 @@ std::wstring angleString(double angle)
 {
 	TCHAR str[MAX_STRING];
 	// radians
-	_stprintf_s<MAX_STRING>(str, L"%.8g", angle);		
+	_stprintf_s<MAX_STRING>(str, L"%.6f", angle);		
 	return str;
 }
 
@@ -25,7 +25,7 @@ std::wstring vectorString(double x, double y, double z)
 {
 	TCHAR str[MAX_STRING];
 	// unit vector
-	_stprintf_s<MAX_STRING>(str, L"{%.8g, %.8g, %.8g}", x, y, z);		
+	_stprintf_s<MAX_STRING>(str, L"{%.6f, %.6f, %.6f}", x, y, z);		
 	return str;
 }
 
