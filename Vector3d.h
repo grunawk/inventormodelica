@@ -143,9 +143,9 @@ inline double Vector3d::angle(const Vector3d& v, const Vector3d& about) const
 inline Vector3d Vector3d::perpendicular() const
 {
     if (fabs(m_x) < 0.015625 && fabs(m_y) < 0.015625) // 1/64
-		return Vector3d(m_z, 0.0, -m_x);
+		return Vector3d(m_z, 0.0, -m_x).normalize();
 	else
-		return Vector3d(-m_y, m_x, 0.0);
+		return Vector3d(-m_y, m_x, 0.0).normalize();
 }
 
 inline const Vector3d& Vector3d::normalize()

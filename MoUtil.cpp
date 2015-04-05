@@ -2,6 +2,7 @@
 #include "MoUtil.h"
 
 #define MAX_STRING 200
+#define ESSENTIALLY_ZERO 1e-14
 
 namespace MoUtil {
 
@@ -15,6 +16,9 @@ std::wstring angleString(double angle)
 
 std::wstring distanceString(double distance)
 {
+	if (distance <= ESSENTIALLY_ZERO)
+		distance = 0.0;
+
 	TCHAR str[MAX_STRING];
 	// meters
 	_stprintf_s<MAX_STRING>(str, L"%.8g", distance);		
@@ -31,6 +35,13 @@ std::wstring vectorString(double x, double y, double z)
 
 std::wstring pointString(double x, double y, double z)
 {
+	if (fabs(x) <= ESSENTIALLY_ZERO)
+		x = 0.0;
+	if (fabs(y) <= ESSENTIALLY_ZERO)
+		y = 0.0;
+	if (fabs(z) <= ESSENTIALLY_ZERO)
+		z = 0.0;
+
 	TCHAR str[MAX_STRING];
 	// unit vector
 	_stprintf_s<MAX_STRING>(str, L"{%.8g, %.8g, %.8g}", x, y, z);		

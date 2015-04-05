@@ -552,11 +552,58 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 
 			case kTranslationalJoint:
 				{
+					LinePtr line1( pGeometry1);
+					CSafeArrayDouble saPt, saVec ;
+					hr = line1->GetLineData( &saPt, &saVec ) ;
+					if (FAILED(hr))
+						continue;
+					Vector3d origin1(saPt[0], saPt[1], saPt[2]);
+					Vector3d zAxis1(saVec[0], saVec[1], saVec[2]);
+					zAxis1.normalize();
+
+					LinePtr line2( pGeometry2);
+					CSafeArrayDouble saPt2, saVec2 ;
+					hr = line2->GetLineData( &saPt2, &saVec2 ) ;
+					if (FAILED(hr))
+						continue;
+					Vector3d origin2(saPt2[0], saPt2[1], saPt2[2]);
+					Vector3d zAxis2(saVec2[0], saVec2[1], saVec2[2]);
+					zAxis2.normalize();
+
+					Vector3d xAxis1;
+					Vector3d xAxis2;
+
 					bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
+					if (fromJoint)
+					{
+						// frome experimentation, these will exist but can be 0 length
+						xAxis1.set(pAdditionalInfo->GetValue(L"Vector1aX"),
+								   pAdditionalInfo->GetValue(L"Vector1aY"),
+								   pAdditionalInfo->GetValue(L"Vector1aZ"));
+
+						xAxis2.set(pAdditionalInfo->GetValue(L"Vector2aX"),
+								   pAdditionalInfo->GetValue(L"Vector2aY"),
+								   pAdditionalInfo->GetValue(L"Vector2aZ"));
+					}
+
+					if (xAxis1.isEqualTo(Vector3d::kZero))
+						xAxis1 = zAxis1.perpendicular();
+					else
+						xAxis1.normalize();
+
+					if (xAxis2.isEqualTo(Vector3d::kZero))
+						xAxis2 = zAxis2.perpendicular();
+					else
+						xAxis2.normalize();
+
+					Vector3d yAxis1 = zAxis1 * xAxis1;
+					Vector3d yAxis2 = zAxis2 * xAxis2;
+					Matrix3d transform1(origin1, xAxis1, yAxis1, zAxis1);
+					Matrix3d transform2(origin2, xAxis2, yAxis2, zAxis2);
+
 					auto joint = std::make_shared<MoJoint>();
-					Matrix3d transform1, transform2;
 					joint->init(b1, transform1, b2, transform2);
-					joint->type(MoJoint::eRigid);
+					joint->type(MoJoint::ePrismatic);
 
 					moJoints.push_back(joint);
 					moAssembly->addJoint(joint);
