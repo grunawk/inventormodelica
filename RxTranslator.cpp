@@ -341,6 +341,105 @@ HRESULT CRxTranslator::ShowSaveCopyAsOptions(IUnknown* pSourceObject, Translatio
 	return E_NOTIMPL;
 }
 
+HRESULT getOriginAxisFromCircle(IDispatchPtr pGeometry, Vector3d& origin, Vector3d& axis)
+{
+
+	CirclePtr cir( pGeometry);
+	if (cir == nullptr)
+		return E_FAIL;
+
+	CSafeArrayDouble saPt, saVec ;
+	double rad;
+	HRESULT hr = cir->GetCircleData( &saPt, &saVec, &rad ) ;
+	if (FAILED(hr))
+		return hr;
+
+	origin.set(saPt[0], saPt[1], saPt[2]);
+	axis.set(saVec[0], saVec[1], saVec[2]);
+	axis.normalize();
+
+	return S_OK;
+}
+
+HRESULT getOriginAxisFromLine(IDispatchPtr pGeometry, Vector3d& origin, Vector3d& axis)
+{
+	LinePtr line( pGeometry);
+	if (line == nullptr)
+		return E_FAIL;
+
+	CSafeArrayDouble saPt, saVec ;
+	HRESULT hr = line->GetLineData( &saPt, &saVec) ;
+	if (FAILED(hr))
+		return hr;
+
+	origin.set(saPt[0], saPt[1], saPt[2]);
+	axis.set(saVec[0], saVec[1], saVec[2]);
+	axis.normalize();
+
+	return S_OK;
+}
+
+HRESULT getOriginAxisFromPlane(IDispatchPtr pGeometry, Vector3d& origin, Vector3d& axis)
+{
+	PlanePtr plane( pGeometry);
+	if (plane == nullptr)
+		return E_FAIL;
+
+	CSafeArrayDouble saPt, saVec ;
+	HRESULT hr = plane->GetPlaneData( &saPt, &saVec);
+	if (FAILED(hr))
+		return hr;
+
+	origin.set(saPt[0], saPt[1], saPt[2]);
+	axis.set(saVec[0], saVec[1], saVec[2]);
+	axis.normalize();
+
+	return S_OK;
+}
+
+HRESULT getOriginAxisFromPoint(IDispatchPtr pGeometry, Vector3d& origin, Vector3d& axis)
+{
+	PointPtr point( pGeometry);
+	if (point == nullptr)
+		return E_FAIL;
+
+	CSafeArrayDouble saPt;
+	HRESULT hr = point->GetPointData( &saPt);
+	if (FAILED(hr))
+		return hr;
+
+	origin.set(saPt[0], saPt[1], saPt[2]);
+	axis.set(0,0,1); // arbitrary
+
+	return S_OK;
+}
+
+HRESULT getXAxisFromAdditionalInfo(NameValueMapPtr pAdditionalInfo, Vector3d& zAxis, Vector3d& xAxis, bool first)
+{
+	xAxis = zAxis.perpendicular();
+
+	bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
+	if (fromJoint)
+	{
+		if (first)
+			xAxis.set(pAdditionalInfo->GetValue(L"Vector1aX"), pAdditionalInfo->GetValue(L"Vector1aY"), pAdditionalInfo->GetValue(L"Vector1aZ"));
+		else
+			xAxis.set(pAdditionalInfo->GetValue(L"Vector2aX"), pAdditionalInfo->GetValue(L"Vector2aY"), pAdditionalInfo->GetValue(L"Vector2aZ"));
+
+		if (xAxis.isEqualTo(Vector3d::kZero))
+			xAxis = zAxis.perpendicular();
+		else
+			xAxis.normalize();
+	}
+	else
+	{
+		ASSERT(0);
+		return E_FAIL;
+	}
+	
+	return S_OK;
+}
+
 HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDoc, MoAssemblyPtr& moAssembly)
 {
 	AssemblyComponentDefinitionPtr pAssemblyDefPtr;
@@ -448,9 +547,7 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 		for (long i = 0 ; i < rigidBodyJoints->Count ; ++i)
 		{
 			RigidBodyJointPtr rigidBodyJoint = rigidBodyJoints->GetItem( i+1 );
-			if (!rigidBodyJoint || (rigidBodyJoint->GetJointType() != kConCentricCircleCircleJoint &&
-									rigidBodyJoint->GetJointType() != kTranslationalJoint &&
-									rigidBodyJoint->GetJointType() != kWeldJoint))
+			if (!rigidBodyJoint)
 				continue; 
 
 			std::shared_ptr<MoBody> b1, b2;
@@ -490,123 +587,100 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				continue;
 			}
 
+			MoJoint::Type jointType = MoJoint::eUnknown;
+			Vector3d origin1, xAxis1, zAxis1;
+			Vector3d origin2, xAxis2, zAxis2;
+
 			switch (rigidBodyJoint->GetJointType())
 			{
 			case kConCentricCircleCircleJoint:
 				{
-					double rad;
+					hr = getOriginAxisFromCircle(pGeometry1, origin1, zAxis1);
+					if (FAILED(hr)) break;
 
-					CirclePtr cir1( pGeometry1);
-					CSafeArrayDouble saPt, saVec ;
-					hr = cir1->GetCircleData( &saPt, &saVec, &rad ) ;
-					if (FAILED(hr))
-						continue;
-					Vector3d origin1(saPt[0], saPt[1], saPt[2]);
-					Vector3d zAxis1(saVec[0], saVec[1], saVec[2]);
-					zAxis1.normalize();
+					hr = getOriginAxisFromCircle(pGeometry2, origin2, zAxis2);
+					if (FAILED(hr)) break;
 
-					CirclePtr cir2( pGeometry2);
-					CSafeArrayDouble saPt2, saVec2 ;
-					hr = cir2->GetCircleData( &saPt2, &saVec2, &rad ) ;
-					if (FAILED(hr))
-						continue;
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis1, xAxis1, true);
+					if (FAILED(hr)) break;
 
-					Vector3d origin2(saPt2[0], saPt2[1], saPt2[2]);
-					Vector3d zAxis2(saVec2[0], saVec2[1], saVec2[2]);
-					zAxis2.normalize();
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis2, xAxis2, false);
+					if (FAILED(hr)) break;
 
-					Vector3d xAxis1 = zAxis1.perpendicular();
-					Vector3d xAxis2 = zAxis2.perpendicular();
-
-					bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
-					if (fromJoint)
-					{
-						xAxis1.set(pAdditionalInfo->GetValue(L"Vector1aX"),
-								   pAdditionalInfo->GetValue(L"Vector1aY"),
-								   pAdditionalInfo->GetValue(L"Vector1aZ"));
-
-						xAxis2.set(pAdditionalInfo->GetValue(L"Vector2aX"),
-								   pAdditionalInfo->GetValue(L"Vector2aY"),
-								   pAdditionalInfo->GetValue(L"Vector2aZ"));
-
-						if (!xAxis1.isEqualTo(Vector3d::kZero) && !xAxis2.isEqualTo(Vector3d::kZero))
-						{
-							xAxis1.normalize();
-							xAxis2.normalize();
-						}
-					}
-
-					Vector3d yAxis1 = zAxis1 * xAxis1;
-					Vector3d yAxis2 = zAxis2 * xAxis2;
-					Matrix3d transform1(origin1, xAxis1, yAxis1, zAxis1);
-					Matrix3d transform2(origin2, xAxis2, yAxis2, zAxis2);
-
-					auto joint = std::make_shared<MoJoint>();
-					joint->init(b1, transform1, b2, transform2);
-					joint->type(MoJoint::eRevolute);
-
-					moJoints.push_back(joint);
-					moAssembly->addJoint(joint);
+					jointType = MoJoint::eRevolute;
 				}
 				break;
 
 			case kTranslationalJoint:
 				{
-					LinePtr line1( pGeometry1);
-					CSafeArrayDouble saPt, saVec ;
-					hr = line1->GetLineData( &saPt, &saVec ) ;
-					if (FAILED(hr))
-						continue;
-					Vector3d origin1(saPt[0], saPt[1], saPt[2]);
-					Vector3d zAxis1(saVec[0], saVec[1], saVec[2]);
-					zAxis1.normalize();
+					hr = getOriginAxisFromLine(pGeometry1, origin1, zAxis1);
+					if (FAILED(hr)) break;
 
-					LinePtr line2( pGeometry2);
-					CSafeArrayDouble saPt2, saVec2 ;
-					hr = line2->GetLineData( &saPt2, &saVec2 ) ;
-					if (FAILED(hr))
-						continue;
-					Vector3d origin2(saPt2[0], saPt2[1], saPt2[2]);
-					Vector3d zAxis2(saVec2[0], saVec2[1], saVec2[2]);
-					zAxis2.normalize();
+					hr = getOriginAxisFromLine(pGeometry2, origin2, zAxis2);
+					if (FAILED(hr)) break;
 
-					Vector3d xAxis1;
-					Vector3d xAxis2;
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis1, xAxis1, true);
+					if (FAILED(hr)) break;
 
-					bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
-					if (fromJoint)
-					{
-						// frome experimentation, these will exist but can be 0 length
-						xAxis1.set(pAdditionalInfo->GetValue(L"Vector1aX"),
-								   pAdditionalInfo->GetValue(L"Vector1aY"),
-								   pAdditionalInfo->GetValue(L"Vector1aZ"));
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis2, xAxis2, false);
+					if (FAILED(hr)) break;
 
-						xAxis2.set(pAdditionalInfo->GetValue(L"Vector2aX"),
-								   pAdditionalInfo->GetValue(L"Vector2aY"),
-								   pAdditionalInfo->GetValue(L"Vector2aZ"));
-					}
+					jointType = MoJoint::ePrismatic;
+				}
+				break;
 
-					if (xAxis1.isEqualTo(Vector3d::kZero))
-						xAxis1 = zAxis1.perpendicular();
-					else
-						xAxis1.normalize();
+			case kMateLineLineJoint:
+				{
 
-					if (xAxis2.isEqualTo(Vector3d::kZero))
-						xAxis2 = zAxis2.perpendicular();
-					else
-						xAxis2.normalize();
+					hr = getOriginAxisFromLine(pGeometry1, origin1, zAxis1);
+					if (FAILED(hr)) break;
 
-					Vector3d yAxis1 = zAxis1 * xAxis1;
-					Vector3d yAxis2 = zAxis2 * xAxis2;
-					Matrix3d transform1(origin1, xAxis1, yAxis1, zAxis1);
-					Matrix3d transform2(origin2, xAxis2, yAxis2, zAxis2);
+					hr = getOriginAxisFromLine(pGeometry2, origin2, zAxis2);
+					if (FAILED(hr)) break;
 
-					auto joint = std::make_shared<MoJoint>();
-					joint->init(b1, transform1, b2, transform2);
-					joint->type(MoJoint::ePrismatic);
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis1, xAxis1, true);
+					if (FAILED(hr)) break;
 
-					moJoints.push_back(joint);
-					moAssembly->addJoint(joint);
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis2, xAxis2, false);
+					if (FAILED(hr)) break;
+
+					jointType = MoJoint::eCylindrical;
+				}
+				break;
+
+			case kDistancePlanePlaneJoint:
+				{
+					hr = getOriginAxisFromPlane(pGeometry1, origin1, zAxis1);
+					if (FAILED(hr)) break;
+
+					hr = getOriginAxisFromPlane(pGeometry2, origin2, zAxis2);
+					if (FAILED(hr)) break;
+
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis1, xAxis1, true);
+					if (FAILED(hr)) break;
+
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis2, xAxis2, false);
+					if (FAILED(hr)) break;
+
+					jointType = MoJoint::ePlanar;
+				}
+				break;
+
+			case kMatePointPointJoint:
+				{
+					hr = getOriginAxisFromPoint(pGeometry1, origin1, zAxis1);
+					if (FAILED(hr)) break;
+
+					hr = getOriginAxisFromPoint(pGeometry2, origin2, zAxis2);
+					if (FAILED(hr)) break;
+
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis1, xAxis1, true);
+					if (FAILED(hr)) break;
+
+					hr = getXAxisFromAdditionalInfo(pAdditionalInfo, zAxis2, xAxis2, false);
+					if (FAILED(hr)) break;
+
+					jointType = MoJoint::eSpherical;
 				}
 				break;
 
@@ -616,49 +690,51 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 					if (fromJoint)
 					{
 						PointPtr group1Point = pAdditionalInfo->GetValue(L"Group1Point");
-						if (group1Point == nullptr)
-							continue;
+						if (group1Point == nullptr) break;
 
 						VectorPtr group1Vector1 = pAdditionalInfo->GetValue(L"Group1Vector1");
-						if (group1Vector1 == nullptr)
-							continue;
+						if (group1Vector1 == nullptr) break;
 
 						VectorPtr group1Vector2 = pAdditionalInfo->GetValue(L"Group1Vector2");
-						if (group1Vector2 == nullptr)
-							continue;
+						if (group1Vector2 == nullptr) break;
 
 						PointPtr group2Point = pAdditionalInfo->GetValue(L"Group2Point");
-						if (group2Point == nullptr)
-							continue;
+						if (group2Point == nullptr) break;
 
 						VectorPtr group2Vector1 = pAdditionalInfo->GetValue(L"Group2Vector1");
-						if (group2Vector1 == nullptr)
-							continue;
+						if (group2Vector1 == nullptr) break;
 
 						VectorPtr group2Vector2 = pAdditionalInfo->GetValue(L"Group2Vector2");
-						if (group2Vector2 == nullptr)
-							continue;
+						if (group2Vector2 == nullptr) break;
 
-						Vector3d origin1(group1Point->GetX(), group1Point->GetY(), group1Point->GetZ());
-						Vector3d origin2(group2Point->GetX(), group2Point->GetY(), group2Point->GetZ());
-						Vector3d zAxis1(group1Vector1->GetX(), group1Vector1->GetY(), group1Vector1->GetZ());
-						Vector3d xAxis1(group1Vector2->GetX(), group1Vector2->GetY(), group1Vector2->GetZ());
-						Vector3d zAxis2(group2Vector1->GetX(), group2Vector1->GetY(), group2Vector1->GetZ());
-						Vector3d xAxis2(group2Vector2->GetX(), group2Vector2->GetY(), group2Vector2->GetZ());
-						Vector3d yAxis1 = zAxis1 * xAxis1;
-						Vector3d yAxis2 = zAxis2 * xAxis2;
-						Matrix3d transform1(origin1, xAxis1, yAxis1, zAxis1);
-						Matrix3d transform2(origin2, xAxis2, yAxis2, zAxis2);
+						origin1.set(group1Point->GetX(), group1Point->GetY(), group1Point->GetZ());
+						origin2.set(group2Point->GetX(), group2Point->GetY(), group2Point->GetZ());
+						zAxis1.set(group1Vector1->GetX(), group1Vector1->GetY(), group1Vector1->GetZ());
+						xAxis1.set(group1Vector2->GetX(), group1Vector2->GetY(), group1Vector2->GetZ());
+						zAxis2.set(group2Vector1->GetX(), group2Vector1->GetY(), group2Vector1->GetZ());
+						xAxis2.set(group2Vector2->GetX(), group2Vector2->GetY(), group2Vector2->GetZ());
 
-						auto joint = std::make_shared<MoJoint>();
-						joint->init(b1, transform1, b2, transform2);
-						joint->type(MoJoint::eRigid);
-
-						moJoints.push_back(joint);
-						moAssembly->addJoint(joint);
+						jointType = MoJoint::eRigid;
 					}
 				}
 				break;
+			}
+
+			if (jointType != MoJoint::eUnknown)
+			{
+				Matrix3d transform1(origin1, xAxis1, zAxis1 * xAxis1, zAxis1);
+				Matrix3d transform2(origin2, xAxis2, zAxis2 * xAxis2, zAxis2);
+
+				auto joint = std::make_shared<MoJoint>();
+				joint->init(b1, transform1, b2, transform2);
+				joint->type(jointType);
+
+				moJoints.push_back(joint);
+				moAssembly->addJoint(joint);
+			}
+			else
+			{
+				ASSERT(0);
 			}
 		}
 	}

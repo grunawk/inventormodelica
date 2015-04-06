@@ -15,7 +15,7 @@ public:
 	const Matrix3d& frame(size_t i) const;
 	MoBodyPtr body(size_t i) const;
 
-	enum Type { eRevolute=0, ePrismatic, eRigid, eLastJoint=eRigid };
+	enum Type { eRevolute=0, ePrismatic, eCylindrical, ePlanar, eSpherical, eRigid, eUnknown };
 
 	Type type() const { return m_type; }
 	void type(Type t) { m_type = t; }
