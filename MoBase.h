@@ -17,7 +17,7 @@ public:
 
 	MoId id() const { return m_id; }
 	void id(MoId id) { m_id = id; }
-	void name(const std::wstring& n) { m_name = n; }
+	void name(const std::wstring& n);
 	std::wstring name() const;
 
 	// diagram properties and methods

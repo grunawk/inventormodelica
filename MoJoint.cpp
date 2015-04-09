@@ -82,7 +82,7 @@ namespace {
 	L"  extends PartialPositioned;\n"
 	L"equation\n"
 	L"  connect(fixedrotation1.frame_b, fixedrotation2.frame_b) annotation(Line(points = {{10, 0}, {40, 0}, {40, 0}, {40, 0}}, color = {95, 95, 95}));\n"
-	L"  annotation(Diagram(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2})), Icon(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2}), graphics = {Rectangle(lineColor = {85, 170, 255}, fillColor = {85, 170, 255}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, extent = {{-80, -10}, {-20, 10}}), Rectangle(lineColor = {200, 200, 200}, fillColor = {180, 180, 180}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, extent = {{80, -10}, {20, 10}}), Text(lineColor = {0, 0, 255}, extent = {{-150, 110}, {150, 70}}, textString = \"%%name\"), Rectangle(origin = {-80, -50}, lineColor = {200, 200, 200}, fillColor = {180, 180, 180}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, extent = {{100, 0}, {60, 100}}), Polygon(origin = {-5.28, 0}, fillColor = {85, 170, 255}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, points = {{-14.7236, -50}, {15.2764, -50}, {-4.72361, -40}, {13.2764, -30}, {-4.72361, -20}, {13.2764, -10}, {-4.72361, 0}, {13.2764, 10}, {-4.72361, 20}, {13.2764, 30}, {-4.72361, 40}, {15.2764, 50}, {-14.7236, 50}, {-14.7236, -50}})}));\n"
+	L"  annotation(Diagram(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2})), Icon(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2}), graphics = {Rectangle(lineColor = {85, 170, 255}, fillColor = {85, 170, 255}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, extent = {{-80, -10}, {-20, 10}}), Rectangle(lineColor = {200, 200, 200}, fillColor = {200, 200, 200}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, extent = {{80, -10}, {20, 10}}), Text(lineColor = {0, 0, 255}, extent = {{-150, 110}, {150, 70}}, textString = \"%%name\"), Rectangle(origin = {-80, -50}, lineColor = {200, 200, 200}, fillColor = {200, 200, 200}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, extent = {{100, 0}, {60, 100}}), Polygon(origin = {-3.28, 0}, fillColor = {85, 170, 255}, pattern = LinePattern.None, fillPattern = FillPattern.Solid, points = {{-16.7236, -50}, {15.2764, -50}, {-4.72361, -40}, {13.2764, -30}, {-4.72361, -20}, {13.2764, -10}, {-4.72361, 0}, {13.2764, 10}, {-4.72361, 20}, {13.2764, 30}, {-4.72361, 40}, {15.2764, 50}, {-16.7236, 50}, {-16.7236, -50}})}));\n"
 	L"end RigidPositioned;\n\n"
 	};
 }
@@ -261,10 +261,10 @@ bool MoJoint::connections(FILE* moFile) const
 	if (!b1 || !b2)
 		return false;
 
-	_ftprintf_s(moFile, L"  connect(%s_1.frame, %s.%s) annotation(%s);\n",
+	_ftprintf_s(moFile, L"  connect(%s.frame, %s.%s) annotation(%s);\n",
 		b1->name().c_str(), name().c_str(), frame1, connection(b1->diagramX(), b1->diagramY()-10, diagramX()-10, diagramY()).c_str());
 
-	_ftprintf_s(moFile, L"  connect(%s.%s, %s_1.frame) annotation(%s);\n",
+	_ftprintf_s(moFile, L"  connect(%s.%s, %s.frame) annotation(%s);\n",
 		name().c_str(), frame2, b2->name().c_str(), connection(diagramX()+10, diagramY(), b2->diagramX(), b2->diagramY()-10).c_str());
 
 	return true;

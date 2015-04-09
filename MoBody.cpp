@@ -28,7 +28,7 @@ bool MoBody::write(FILE* moFile) const
 
 	// --- begin definition of body
 
-	_ftprintf_s(moFile, L"  model %s\n", nameStr.c_str());
+	_ftprintf_s(moFile, L"  model %sDef\n", nameStr.c_str());
 
 	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Parts.Body body1 (m = %.8g, I_11 = %.8g, I_22 = %.8g, I_33 = %.8g, I_21 = %.8g, I_31 = %.8g, I_32 = %.8g, r_CM = {%.8g, %.8g, %.8g}) "
 						L"annotation(Placement(visible = true, transformation(origin = {0, 10}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n",
@@ -59,12 +59,12 @@ bool MoBody::write(FILE* moFile) const
 		_ftprintf_s(moFile, L", graphics = {Bitmap(origin = {0, 0}, extent = {{-100, -100}, {100, 100}}, imageSource = \"%S\"), Text(extent = {{-150, 145}, {150, 105}}, textString = \"%%name\", lineColor = {0, 0, 255})}));\n",
 			m_thumbnail.c_str());
 
-	_ftprintf_s(moFile, L"  end %s;\n\n", name().c_str());
+	_ftprintf_s(moFile, L"  end %sDef;\n\n", name().c_str());
 
 	// --- end definition
 
 	// occurrence
-	_ftprintf_s(moFile, L"  %s %s_1 annotation(%s);\n\n", nameStr.c_str(), nameStr.c_str(), placement().c_str());
+	_ftprintf_s(moFile, L"  %sDef %s annotation(%s);\n\n", nameStr.c_str(), nameStr.c_str(), placement().c_str());
 
 	return true;
 }

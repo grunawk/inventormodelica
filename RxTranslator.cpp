@@ -174,6 +174,20 @@ HRESULT documentThumbnail(DocumentPtr doc, std::string& thumbnailBase64)
 	return E_FAIL;
 }
 
+HRESULT documentName(DocumentPtr doc, std::wstring& name)
+{
+	BSTR displayName;
+	HRESULT hr = doc->get_DisplayName(&displayName);
+	if (FAILED(hr))
+		return hr;
+
+	name = displayName;
+	size_t i = name.find_last_of(L'.');
+	name.erase(i,std::wstring::npos);
+
+	return S_OK;
+}
+
 // The addin wizard adds command id definitions here.
 
 /*--------------------- IUnknown-interface related implementation  --------------------------------*/
@@ -418,24 +432,15 @@ HRESULT getXAxisFromAdditionalInfo(NameValueMapPtr pAdditionalInfo, Vector3d& zA
 {
 	xAxis = zAxis.perpendicular();
 
-	bool fromJoint = pAdditionalInfo->GetValue(L"FromJoint");
-	if (fromJoint)
-	{
-		if (first)
-			xAxis.set(pAdditionalInfo->GetValue(L"Vector1aX"), pAdditionalInfo->GetValue(L"Vector1aY"), pAdditionalInfo->GetValue(L"Vector1aZ"));
-		else
-			xAxis.set(pAdditionalInfo->GetValue(L"Vector2aX"), pAdditionalInfo->GetValue(L"Vector2aY"), pAdditionalInfo->GetValue(L"Vector2aZ"));
-
-		if (xAxis.isEqualTo(Vector3d::kZero))
-			xAxis = zAxis.perpendicular();
-		else
-			xAxis.normalize();
-	}
+	if (first)
+		xAxis.set(pAdditionalInfo->GetValue(L"Vector1aX"), pAdditionalInfo->GetValue(L"Vector1aY"), pAdditionalInfo->GetValue(L"Vector1aZ"));
 	else
-	{
-		ASSERT(0);
-		return E_FAIL;
-	}
+		xAxis.set(pAdditionalInfo->GetValue(L"Vector2aX"), pAdditionalInfo->GetValue(L"Vector2aY"), pAdditionalInfo->GetValue(L"Vector2aZ"));
+
+	if (xAxis.isEqualTo(Vector3d::kZero))
+		xAxis = zAxis.perpendicular();
+	else
+		xAxis.normalize();
 	
 	return S_OK;
 }
@@ -533,9 +538,17 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				
 			if (bestRepresentative)
 			{
-				std::string thumbnailBase64;
-				if (SUCCEEDED(documentThumbnail(bestRepresentative->GetDefinition()->GetDocument(), thumbnailBase64)))
-					moBody->thumbnail(thumbnailBase64);
+				DocumentPtr doc = bestRepresentative->GetDefinition()->GetDocument();
+				if (doc)
+				{
+					std::string thumbnailBase64;
+					if (SUCCEEDED(documentThumbnail(doc, thumbnailBase64)))
+						moBody->thumbnail(thumbnailBase64);
+
+					std::wstring name;
+					if (SUCCEEDED(documentName(doc, name)))
+						moBody->name(name);
+				}
 			}
 		}
 	}
@@ -746,6 +759,7 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 	dispName.erase(i,std::wstring::npos);
 	if (FAILED(hr))
 		return hr;
+
 	moAssembly->name(dispName);
 
 	moAssembly->layout();

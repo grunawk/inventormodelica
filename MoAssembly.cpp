@@ -82,12 +82,12 @@ bool MoAssembly::write(FILE* moFile) const
 		{
 			if (moBody->diagramX() > 60)
 			{
-				_ftprintf_s(moFile, L"  connect(%s_1.frame, world.frame_b) annotation(%s);\n",
+				_ftprintf_s(moFile, L"  connect(%s.frame, world.frame_b) annotation(%s);\n",
 					moBody->name().c_str(), connection(moBody->diagramX(), moBody->diagramY()-10, diagramX()+10, diagramY()).c_str());
 			}
 			else
 			{
-				_ftprintf_s(moFile, L"  connect(world.frame_b, %s_1.frame) annotation(%s);\n",
+				_ftprintf_s(moFile, L"  connect(world.frame_b, %s.frame) annotation(%s);\n",
 					moBody->name().c_str(), connection(diagramX()+10, diagramY(), moBody->diagramX(), moBody->diagramY()-10).c_str());
 			}
 		}

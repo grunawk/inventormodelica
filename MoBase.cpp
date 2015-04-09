@@ -16,16 +16,23 @@ MoBase::~MoBase(void)
 {
 }
 
+void MoBase::name(const std::wstring& n)
+{
+	m_name = n;
+	for (std::wstring::iterator i=m_name.begin(); i!=m_name.end(); ++i)
+		if (*i == L' ')
+			*i = L'_';
+}
+
 std::wstring MoBase::name() const
 {
-	if (m_name.empty())
+	TCHAR cstr[MAX_PATH];
+	if (id() > 0)
 	{
-		TCHAR cstr[MAX_PATH];
-		_stprintf_s<MAX_PATH>(cstr, L"%s%d", baseName(), id());
+		_stprintf_s<MAX_PATH>(cstr, L"%s%d", m_name.empty() ? baseName() : m_name.c_str(), id());
 		return cstr;
 	}
-
-	return m_name;
+	return m_name.empty() ? baseName() : m_name;
 }
 
 std::wstring MoBase::placement() const
