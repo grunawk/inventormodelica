@@ -1,40 +1,96 @@
-  Translator Sample
+  Inventor Modelica Translator
+  ============================
+  
+  This is based on the standard Inventor API translator example.
+
+  Building and Installing
   =======================
-  
- This sample demonstrates how to use the Inventor API to integrate
-  a file translator.  
 
-  
-  How to run this sample:
- 
-  1) Copy Autodesk.Translator.Inventor.addin into ...\Autodesk\Inventor 20XX\Addins folder.
-     For XP: C:\Documents and Settings\All Users\Application Data\Autodesk\Inventor 20XX\Addins.
-     For Vista/Win7: C:\ProgramData\Autodesk\Inventor 20XX\Addins.
+  Choose Debug x64 or Optimize x64 configuration.
 
-  2) Copy bin\Translator.dll into Inventor bin folder(For example: C:\Program Files\Autodesk\Inventor 20XX\Bin).
+  Modify or delete the project's post-build step.
 
-  3) Startup Inventor, and follow below steps to use the translator addin.
-  
-  The file types supported by the translator will now
-  be displayed by Inventor in the Open and Save Copy As dialogs.
+  The current post-build step convenient for Inventor developer builds in the R: drive:
 
-  If the user selects the file type supported by the Add-In from the
-  Open dialog, Inventor notifies the Add-In and supplies the filename
-  of the selected file.  The Add-In can then open the file, perform
-  whatever's needed to produce a SAT file and then use the Inventor
-  API to create a new document and read in the SAT file.
+  1) COPY "$(TargetDir)$(TargetFileName)" R:\lib\$(TargetedSDKConfiguration)_$(PlatformTarget);
+  2) COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(TargetedSDKConfiguration)_$(PlatformTarget)\addins
 
-  If the user selects the file type from the Save Copy As dialog, Inventor
-  notifies the Add-In and supplies the name of the file to save to.
-  The Add-In can then use the Inventor API to query the model and then
-  write the model in the new format to the specified file.
- 
-  This sample demonstrates this concept by supporting a simple
-  translator that translates spheres in Part documents.
-  
+  For normal Inventor installations:
 
-  Language/Compiler: C++
-  Executable /DLL : Translator.dll
-  Server: Inventor.
+  1) COPY "$(TargetDir)$(TargetFileName)" C:\Program Files\Autodesk\Inventor 20XX\Bin
+  2) COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" C:\ProgramData\Autodesk\Inventor 20XX\Addins.
+
+  Make sure to replace XX with appropriate year and update install path if different.
+
+  You can also delete the post-build steps and do this manually, of course.
+
+  No registration of the dll is necessary.
+
+
+  Using the translator
+  ====================
+
+  1) Startup Inventor
+  2) Open an assembly document
+  3) Save Copy As... (under Save As...)
+  4) Select the Modelica output format
+  5) Select Options... if needed
+  6) Save the .mo file
+
+  Options
+  =======
+
+  [ ] Joints only
+      If checked, do not convert assembly constraints into joints. Only translate
+      joints. Joints were added to Inventor late in life. DOF can be defined by
+      collections of more atomic constraints (mate, flush, angle). By default,
+      the translator interprets constraints that leave DOF as a joint if possible.
+      Some DOF does not map to the basic Modelica multi-body joint types.
+
+      If the Inventor model has "top down" created parts, they will often be constrained
+      to a workplane by default. This can result in constraint redundancy which will cause
+      Modelica simulation to fail. You can simply delete the planar joints in the Modelica
+      editor, or check "Joints only" to ignore the planar constraints.
+
+  [ ] Remove massless ungrounded bodies
+
+
+  Constraint and DOF Reduction
+
+  These options belong to the undocumented API method to extract rigid groups and joints
+  from Inventor's assembly constraint solver. Some of these options need more
+  investigation.
+
+  [X] Remove rotations about mass center
+
+      This will remove rotational DOF between a bolt and a hole. Often, there is
+      unnecessary DOF left in the model when things like bolts are added using the "insert"
+      constraint. The bolt's rotation is about inertia axis at center of gravity.
+
+  [ ] Remove rotations about bounding box center
+
+      Like above but uses the rotating part's bounding box center/axes,
+      instead of mass properties.
+
+  [X] Reduce redundant constraints
+
+      TODO: find example of what this does. Certainly, not all redundancies
+      are removed when this is checked.
+
+  [X] Look for double-bearing joints
+
+      TODO: find example of what this does. My guess is that a complex double-bearing
+      rotation is converted to a simpler revolute joint -- but not sure.
+
+  [ ] Merge large mass differentials
+
+      If checked, "Difference" value is used to find relatively small/light bodies that
+      can be merged into larger/heavier bodies to which they are constrained.
+
+  Gravity
+
+  Default: uniform earth gravity in -Y.
+
+  Turn off gravity or select a different axis from world XYZ.
 
  
