@@ -8,7 +8,9 @@ using namespace MoUtil;
 
 MoAssembly::MoAssembly(void) :
 	m_lastBodyId(0),
-	m_lastJointId(0)
+	m_lastJointId(0),
+	m_gravity(eUniformGravity),
+	m_gravityVec(0,-1,0)
 {
 }
 
@@ -66,7 +68,23 @@ bool MoAssembly::write(FILE* moFile) const
 
 	MoJoint::writeDefinitions(moFile, m_joints);
 
-	_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world annotation(%s);\n\n", placement().c_str());
+	switch(m_gravity)
+	{
+	case eNoGravity:
+		_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world(gravityType = Modelica.Mechanics.MultiBody.Types.GravityTypes.NoGravity) annotation(%s);\n\n",
+			placement().c_str());
+		break;
+
+	case eUniformGravity:
+		_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world(n=%s) annotation(%s);\n\n",
+			vectorString(m_gravityVec).c_str(), placement().c_str());
+		break;
+
+	default:
+		_ftprintf_s(moFile, L"  inner Modelica.Mechanics.MultiBody.World world(gravityType = Modelica.Mechanics.MultiBody.Types.GravityTypes.PointGravity, n=%s) annotation(%s);\n\n",
+			vectorString(m_gravityVec).c_str(), placement().c_str());
+	}
+
 
 	for (auto moBody: m_bodies)
 		moBody->write(moFile);

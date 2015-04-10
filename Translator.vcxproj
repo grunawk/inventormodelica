@@ -168,7 +168,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\..\..\..\..\bin;..\..\..\..\include;C:\Program Files\Autodesk\Inventor 2016\Bin</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>R:\XInterface\InventorSDK\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;NDEBUG;_WINDOWS;UNICODE;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -189,7 +189,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(ProjectName).dll</OutputFile>
+      <OutputFile>$(Platform)\$(Configuration)\$(ProjectName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\Translator.def</ModuleDefinitionFile>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
@@ -199,6 +199,9 @@
       <EnableUAC>false</EnableUAC>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>COPY "$(TargetDir)$(TargetFileName)" R:\lib\$(TargetedSDKConfiguration)_$(PlatformTarget);</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <CustomBuildStep>
@@ -270,7 +273,7 @@ echo regsvr32 exec. time &gt; "$(OutDir)regsvr32.trg"
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>R:\XInterface\bin;R:\XInterface\InventorSDK\include;R:\lib\debug_x64</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>R:\XInterface\InventorSDK\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_DEBUG;_WINDOWS;UNICODE;_USRDLL;GE_NO_ACAD;GELIB_NOACAD;GE_LOCATED_NEW;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -334,6 +337,7 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Optimize|x64'">MaxSpeed</Optimization>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Optimize|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TranslationOptionsDlg.cpp" />
     <ClCompile Include="Translator.cpp" />
     <ClCompile Include="Unknown.cpp">
       <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
@@ -365,6 +369,7 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RxTranslator.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TranslationOptionsDlg.h" />
     <ClInclude Include="Translator.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="Unknown.h" />
@@ -376,4 +381,9 @@ COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(Targeted
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="Translator.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

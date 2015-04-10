@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MoUtil.h"
+#include "Vector3d.h"
 
 #define MAX_STRING 200
 #define ESSENTIALLY_ZERO 1e-14
@@ -33,6 +34,11 @@ std::wstring vectorString(double x, double y, double z)
 	return str;
 }
 
+std::wstring vectorString(const Vector3d& vec)
+{
+	return vectorString(vec.x(), vec.y(), vec.z());
+}
+
 std::wstring pointString(double x, double y, double z)
 {
 	if (fabs(x) <= ESSENTIALLY_ZERO)
@@ -46,6 +52,11 @@ std::wstring pointString(double x, double y, double z)
 	// unit vector
 	_stprintf_s<MAX_STRING>(str, L"{%.8g, %.8g, %.8g}", x, y, z);		
 	return str;
+}
+
+std::wstring pointString(const Vector3d& vec)
+{
+	return pointString(vec.x(), vec.y(), vec.z());
 }
 
 std::wstring connection(double x1, double y1, double x2, double y2)

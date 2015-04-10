@@ -16,19 +16,25 @@ MoBody::~MoBody(void)
 void MoBody::addMass(double mass, const Vector3d& cg, const InertiaTensor& inertia)
 {
 	m_mass += mass;
-	m_cg += (cg * .01); // convert to m
-	InertiaTensor inertiaConverted = inertia;
-	inertiaConverted *= .0001; // convert kg *cm^2 to kg * m^2
-	m_inertia += inertiaConverted;
+	m_cg += cg;
+	m_inertia += inertia;
+}
+
+std::wstring MoBody::definitionName() const
+{
+	std::wstring def = name();
+	def += L"Model";
+	return def;
 }
 
 bool MoBody::write(FILE* moFile) const
 {
 	std::wstring nameStr = name();
+	std::wstring defStr = definitionName();
 
 	// --- begin definition of body
 
-	_ftprintf_s(moFile, L"  model %sDef\n", nameStr.c_str());
+	_ftprintf_s(moFile, L"  model %s\n", defStr.c_str());
 
 	_ftprintf_s(moFile, L"    Modelica.Mechanics.MultiBody.Parts.Body body1 (m = %.8g, I_11 = %.8g, I_22 = %.8g, I_33 = %.8g, I_21 = %.8g, I_31 = %.8g, I_32 = %.8g, r_CM = {%.8g, %.8g, %.8g}) "
 						L"annotation(Placement(visible = true, transformation(origin = {0, 10}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));\n",
@@ -59,12 +65,12 @@ bool MoBody::write(FILE* moFile) const
 		_ftprintf_s(moFile, L", graphics = {Bitmap(origin = {0, 0}, extent = {{-100, -100}, {100, 100}}, imageSource = \"%S\"), Text(extent = {{-150, 145}, {150, 105}}, textString = \"%%name\", lineColor = {0, 0, 255})}));\n",
 			m_thumbnail.c_str());
 
-	_ftprintf_s(moFile, L"  end %sDef;\n\n", name().c_str());
+	_ftprintf_s(moFile, L"  end %s;\n\n", defStr.c_str());
 
 	// --- end definition
 
 	// occurrence
-	_ftprintf_s(moFile, L"  %sDef %s annotation(%s);\n\n", nameStr.c_str(), nameStr.c_str(), placement().c_str());
+	_ftprintf_s(moFile, L"  %s %s annotation(%s);\n\n", defStr.c_str(), nameStr.c_str(), placement().c_str());
 
 	return true;
 }

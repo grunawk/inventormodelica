@@ -34,7 +34,7 @@
 
 #include "unknown.h"
 #include "resource.h"
-
+#include "TranslationOptionsDlg.h"
 
 class CRxTranslator : public CUnknown, public IRxTranslatorAddInServer2
 {
@@ -99,6 +99,9 @@ class CRxTranslator : public CUnknown, public IRxTranslatorAddInServer2
 
 private:
 	HRESULT CreateModelicaAssembly(FILE* pFile, AssemblyDocument* pDoc, MoAssemblyPtr& assem);
+
+private:
+	TranslationOptionsDlg m_optionsDlg;
 };
 
 #endif 

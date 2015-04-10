@@ -12,61 +12,59 @@
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
     "#define _AFX_NO_OLE_RESOURCES\r\n"
     "#define _AFX_NO_TRACKER_RESOURCES\r\n"
     "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
-	"\r\n"
-	"#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
-	"#ifdef _WIN32\r\n"
-	"LANGUAGE 9, 1\r\n"
-	"#pragma code_page(1252)\r\n"
-	"#endif //_WIN32\r\n"
-	"#include ""res\\Translator.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
-	"#include ""afxres.rc""  	// Standard components\r\n"
-	"#endif\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\Translator.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
     "\0"
 END
 
-/////////////////////////////////////////////////////////////////////////////
 #endif    // APSTUDIO_INVOKED
 
-
-
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE 9, 1
-#pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
-VS_VERSION_INFO     VERSIONINFO
-  FILEVERSION       1,0,0,1
-  PRODUCTVERSION    1,0,0,1
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -77,28 +75,108 @@ VS_VERSION_INFO     VERSIONINFO
  FILETYPE 0x2L
  FILESUBTYPE 0x0L
 BEGIN
-	BLOCK "StringFileInfo"
-	BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
         BLOCK "040904B0"
-		BEGIN 
-			VALUE "CompanyName",     "\0"
-			VALUE "FileDescription", "SimpleAddIn DLL\0"
-			VALUE "FileVersion",     "1, 0, 0, 1\0"
-			VALUE "InternalName",    "SimpleAddIn\0"
-			VALUE "LegalCopyright",  "Copyright (C) 1999\0"
-			VALUE "LegalTrademarks", "\0"
-			VALUE "OriginalFilename","SimpleAddIn.DLL\0"
-			VALUE "ProductName",     "SimpleAddIn Dynamic Link Library\0"
-//			UTXPRODUCTVERSIONSTRING
-		END
-	END
-	BLOCK "VarFileInfo" 
-	BEGIN 
-		VALUE "Translation", 0x409, 1200
+        BEGIN
+            VALUE "FileDescription", "SimpleAddIn DLL"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "SimpleAddIn"
+            VALUE "LegalCopyright", "Copyright (C) 1999"
+            VALUE "OriginalFilename", "SimpleAddIn.DLL"
+            VALUE "ProductName", "SimpleAddIn Dynamic Link Library"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
     END
 END
 
-#endif
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_OPTIONS DIALOGEX 0, 0, 303, 232
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Modelica Translation Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,197,211,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,246,211,50,14
+    COMBOBOX        IDC_COMBO_GRAVITY,127,188,48,92,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Gravity:",IDC_STATIC,14,190,108,8,0,WS_EX_RIGHT
+    CONTROL         "Joints only (ignore constraints leaving DOF)",IDC_CHECK_JOINTSONLY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,20,228,10
+    CONTROL         "Remove rotations about mass center (example: bolt rotating in hole)",IDC_CHECK_REMROTMASS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,78,282,10
+    CONTROL         "Remove rotations about bounding box center (example: screw rotating in hole)",IDC_CHECK_REMROTBBOX,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,94,275,10
+    CONTROL         "Remove massless ungrounded bodies",IDC_CHECK_REMMASSLESS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,35,242,10
+    CONTROL         "Reduce redundant constraints",IDC_CHECK_REDUCECON,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,110,274,10
+    CONTROL         "Look for double-bearing joints",IDC_CHECK_DBLBEARING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,126,276,10
+    GROUPBOX        "Constraint and DOF Reduction",IDC_STATIC,7,63,289,116
+    GROUPBOX        "Filtering",IDC_STATIC,7,7,289,45
+    CONTROL         "Merge large mass differentials (example: fastener constrained to chassis)",IDC_CHECK_MERGEMASSDIFF,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,142,276,10
+    EDITTEXT        IDC_EDIT_MASSDIFF,131,157,40,14,ES_AUTOHSCROLL
+    LTEXT           "Difference:",IDC_STATIC,14,160,109,8,0,WS_EX_RIGHT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DIALOG_OPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 296
+        VERTGUIDE, 14
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 225
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_DIALOG_OPTIONS DLGINIT
+BEGIN
+    IDC_COMBO_GRAVITY, 0x403, 2, 0
+0x0058, 
+    IDC_COMBO_GRAVITY, 0x403, 2, 0
+0x0059, 
+    IDC_COMBO_GRAVITY, 0x403, 2, 0
+0x005a, 
+    IDC_COMBO_GRAVITY, 0x403, 3, 0
+0x582d, "\000" 
+    IDC_COMBO_GRAVITY, 0x403, 3, 0
+0x592d, "\000" 
+    IDC_COMBO_GRAVITY, 0x403, 3, 0
+0x5a2d, "\000" 
+    IDC_COMBO_GRAVITY, 0x403, 5, 0
+0x6f4e, 0x656e, "\000" 
+    0
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -115,8 +193,8 @@ END
 LANGUAGE 9, 1
 #pragma code_page(1252)
 #endif //_WIN32
-#include "res\\Translator.rc2"  // non-Microsoft Visual C++ edited resources
-#include "afxres.rc"  	// Standard components
+#include "res\Translator.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

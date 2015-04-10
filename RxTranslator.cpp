@@ -346,13 +346,9 @@ HRESULT CRxTranslator::ShowSaveCopyAsOptions(IUnknown* pSourceObject, Translatio
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
-	// TODO:
-	// If this AddIn wanted to enable save options and set pEnableOptions to true
-	// in get_HasSaveCopyAsOptions, display it's save options dialog here.
-	// If an options map is provided and if we wish to expose public options for this operation,
-	// we can fill the name-value map with the options chosen through our options dialog.
+	m_optionsDlg.DoModal();
 
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 HRESULT getOriginAxisFromCircle(IDispatchPtr pGeometry, Vector3d& origin, Vector3d& axis)
@@ -456,9 +452,20 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 	m_pApplication->TransientObjects->CreateNameValueMap( &pGlobalOptions );
 	if ( pGlobalOptions )
 	{
-		pGlobalOptions->Add( L"SuperfluousDOF", (_variant_t) VARIANT_TRUE );
-		pGlobalOptions->Add( L"UseMassDifference", (_variant_t) VARIANT_FALSE );
-		pGlobalOptions->Add( L"DoubleBearing",  (_variant_t) VARIANT_TRUE );
+		if (m_optionsDlg.m_removeRotationsByMass)
+			pGlobalOptions->Add( L"SuperfluousDOF", (_variant_t) VARIANT_TRUE );
+
+		if (m_optionsDlg.m_removeRotationsByBBox)
+			pGlobalOptions->Add( L"BoundingBoxSuperfluousDOF", (_variant_t) VARIANT_TRUE );
+
+		if (m_optionsDlg.m_mergeLargeMassDiff)
+			pGlobalOptions->Add( L"UseMassDifference", (_variant_t) m_optionsDlg.m_massDiff );
+
+		if (m_optionsDlg.m_doubleBearingJoints)
+			pGlobalOptions->Add( L"DoubleBearing",  (_variant_t) VARIANT_TRUE );
+
+		if (!m_optionsDlg.m_reduceRedundantConstraints)
+			pGlobalOptions->Add( L"NoReduction",  (_variant_t) VARIANT_TRUE );
 	}
 
 	ObjectCollectionPtr pObjectCollection = nullptr;
@@ -482,6 +489,30 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 		moAssembly->thumbnail(assemblyThumbnail);
 	}
 
+	switch(m_optionsDlg.m_gravity)
+	{
+	case TranslationOptionsDlg::eGravityX:
+		moAssembly->gravityUniform(Vector3d::kXAxis);
+		break;
+	case TranslationOptionsDlg::eGravityY:
+		moAssembly->gravityUniform(Vector3d::kYAxis);
+		break;
+	case TranslationOptionsDlg::eGravityZ:
+		moAssembly->gravityUniform(Vector3d::kZAxis);
+		break;
+	case TranslationOptionsDlg::eGravityMinusX:
+		moAssembly->gravityUniform(Vector3d(-1,0,0));
+		break;
+	case TranslationOptionsDlg::eGravityMinusY:
+		moAssembly->gravityUniform(Vector3d(0,-1,0));
+		break;
+	case TranslationOptionsDlg::eGravityMinusZ:
+		moAssembly->gravityUniform(Vector3d(0,0,-1));
+		break;
+	default:
+		moAssembly->gravityNone();
+	}
+
 	std::map<ULONG, MoBodyPtr> moBodies;
 
 	RigidBodyGroupsPtr rigidBodyGroups = rigidBodyResults->GetRigidBodyGroups();
@@ -495,8 +526,6 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				continue; 
 
 			auto moBody = std::make_shared<MoBody>();
-			moBodies[rigidBodyGroup->GetGroupID()] = moBody;
-			moAssembly->addBody(moBody);
 
 			bool grounded = rigidBodyGroup->GetGrounded() == VARIANT_TRUE ? true : false;
 
@@ -527,13 +556,22 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				hr = massProps->XYZMomentsOfInertia(&moments[0], &moments[1], &moments[2], &products[0], &products[1], &products[2]);
 				if (hr == S_OK)
 				{
-					moBody->addMass(massProps->GetMass(), cg, InertiaTensor(Vector3d(moments[0], moments[1], moments[2]), Vector3d(products[0], products[1], products[2])));
+					cg *= .01; // convert to m
+					InertiaTensor inertia(Vector3d(moments[0], moments[1], moments[2]), Vector3d(products[0], products[1], products[2]));
+					inertia *= .0001; // convert kg *cm^2 to kg * m^2
+
+					moBody->addMass(massProps->GetMass(), cg, inertia);
 					if (mass >= largestMass)
 					{
 						bestRepresentative = componentOcc;
 						largestMass = mass;
 					}
 				}
+			}
+			if (moBody->mass() == 0.0 && !moBody->grounded() && m_optionsDlg.m_removeMasslessUngrounded)
+			{
+				moBody = nullptr;
+				continue;
 			}
 				
 			if (bestRepresentative)
@@ -550,6 +588,9 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 						moBody->name(name);
 				}
 			}
+
+			moBodies[rigidBodyGroup->GetGroupID()] = moBody;
+			moAssembly->addBody(moBody);
 		}
 	}
 
@@ -599,6 +640,9 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 				ASSERT(0);
 				continue;
 			}
+
+			if (m_optionsDlg.m_jointsOnly && !pAdditionalInfo->GetValue(L"FromJoint"))
+				continue;
 
 			MoJoint::Type jointType = MoJoint::eUnknown;
 			Vector3d origin1, xAxis1, zAxis1;
@@ -737,6 +781,10 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 			{
 				Matrix3d transform1(origin1, xAxis1, zAxis1 * xAxis1, zAxis1);
 				Matrix3d transform2(origin2, xAxis2, zAxis2 * xAxis2, zAxis2);
+
+				// converg cm (Inventor internal units) to m (default modelica units)
+				transform1 *= .01;
+				transform2 *= .01;
 
 				auto joint = std::make_shared<MoJoint>();
 				joint->init(b1, transform1, b2, transform2);
