@@ -851,7 +851,12 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 		FILE *pFile = nullptr;
 		_tfopen_s(&pFile, fileName, L"wt");
 		if (!pFile)
+		{
+			TCHAR msg[MAX_PATH];
+			_stprintf_s<MAX_PATH>(msg, L"Failed to open %s for writing", fileName);
+			AfxMessageBox(msg);
 			return E_FAIL;
+		}
 
 		MoAssemblyPtr moAssembly;
 		hr = CreateModelicaAssembly(pFile, pAssemblyDoc, moAssembly);
@@ -861,7 +866,9 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 			if (!moAssembly->write(pFile))
 			{
 				hr = E_FAIL;
-				AfxMessageBox(_T("Failed to Save Document."));
+				TCHAR msg[MAX_PATH];
+				_stprintf_s<MAX_PATH>(msg, L"Failed to write to %s", fileName);
+				AfxMessageBox(msg);
 			}
 		}
 		else
@@ -870,6 +877,9 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 		int ret = fclose(pFile);
 		if (ret != 0)
 		{
+			TCHAR msg[MAX_PATH];
+			_stprintf_s<MAX_PATH>(msg, L"Failed to close %s", fileName);
+			AfxMessageBox(msg);
 			remove(W2A(fileName));
 			return E_FAIL;
 		}

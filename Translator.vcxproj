@@ -273,7 +273,7 @@ echo regsvr32 exec. time &gt; "$(OutDir)regsvr32.trg"
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>R:\XInterface\InventorSDK\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"C:\Users\Public\Documents\Autodesk\Inventor 2016\SDK\DeveloperTools\Include"</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_DEBUG;_WINDOWS;UNICODE;_USRDLL;GE_NO_ACAD;GELIB_NOACAD;GE_LOCATED_NEW;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -306,8 +306,8 @@ echo regsvr32 exec. time &gt; "$(OutDir)regsvr32.trg"
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>COPY "$(TargetDir)$(TargetFileName)" R:\lib\$(TargetedSDKConfiguration)_$(PlatformTarget);
-COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" R:\lib\$(TargetedSDKConfiguration)_$(PlatformTarget)\addins</Command>
+      <Command>COPY "$(TargetDir)$(TargetFileName)" "C:\Program Files\Autodesk\Inventor 2016\Bin";
+COPY "$(ProjectDir)Autodesk.TranslatorModelica.Inventor.addin" "C:\ProgramData\Autodesk\Inventor 2016\Addins";</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Installing</Message>
