@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "types.h"
 #include "Vector3d.h"
 
 const Vector3d Vector3d::kZero;

@@ -852,8 +852,8 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 		_tfopen_s(&pFile, fileName, L"wt");
 		if (!pFile)
 		{
-			TCHAR msg[MAX_PATH];
-			_stprintf_s<MAX_PATH>(msg, L"Failed to open %s for writing", fileName);
+			wchar_t msg[MAX_PATH];
+			swprintf_s(msg, MAX_PATH, L"Failed to open %s for writing", fileName);
 			AfxMessageBox(msg);
 			return E_FAIL;
 		}
@@ -866,8 +866,8 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 			if (!moAssembly->write(pFile))
 			{
 				hr = E_FAIL;
-				TCHAR msg[MAX_PATH];
-				_stprintf_s<MAX_PATH>(msg, L"Failed to write to %s", fileName);
+				wchar_t msg[MAX_PATH];
+				swprintf_s(msg, MAX_PATH, L"Failed to write to %s", fileName);
 				AfxMessageBox(msg);
 			}
 		}
@@ -877,8 +877,8 @@ HRESULT CRxTranslator::SaveCopyAs(IUnknown* pSourceObject, TranslationContext* p
 		int ret = fclose(pFile);
 		if (ret != 0)
 		{
-			TCHAR msg[MAX_PATH];
-			_stprintf_s<MAX_PATH>(msg, L"Failed to close %s", fileName);
+			wchar_t msg[MAX_PATH];
+			swprintf_s(msg, MAX_PATH, L"Failed to close %s", fileName);
 			AfxMessageBox(msg);
 			remove(W2A(fileName));
 			return E_FAIL;

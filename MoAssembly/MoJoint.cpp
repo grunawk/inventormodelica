@@ -1,10 +1,10 @@
-#include "stdafx.h"
+#include "types.h"
 #include "MoJoint.h"
 #include "MoUtil.h"
 
 namespace {
 
-	TCHAR* jointBaseDef =
+	wchar_t* jointBaseDef =
 	L"  model PartialPositioned\n"
 	L"    extends Modelica.Mechanics.MultiBody.Interfaces.PartialTwoFrames;\n"
 	L"    parameter Modelica.SIunits.Position r1[3] = {0, 0, 0};\n"
@@ -21,7 +21,7 @@ namespace {
 	L"    annotation(Diagram(coordinateSystem(extent = {{-100, -100}, {100, 100}}, preserveAspectRatio = true, initialScale = 0.1, grid = {2, 2})));\n"
 	L"  end PartialPositioned;\n\n";
 
-	TCHAR* jointDef[MoJoint::eUnknown] =
+	wchar_t* jointDef[MoJoint::eUnknown] =
 	{
 	L"  model RevolutePositioned\n"
 	L"    extends PartialPositioned;\n"
@@ -97,20 +97,20 @@ bool MoJoint::writeDefinitions(FILE* moFile, const std::vector<MoJointPtr>& join
 		return true;
 
 	// all joints extend a base that includes positioning within two frames
-	_ftprintf_s(moFile, jointBaseDef);
+	fwprintf_s(moFile, jointBaseDef);
 
 	for (auto& joint: joints)
 	{
 		if (joint->type() >= eUnknown)
 		{
-			ASSERT(0);
+			_ASSERT(0);
 			continue;
 		}
 
 		if (!defined[joint->type()])
 		{
 			defined[joint->type()] = true;
-			_ftprintf_s(moFile, jointDef[joint->type()]);
+			fwprintf_s(moFile, jointDef[joint->type()]);
 		}
 	}
 
@@ -136,11 +136,11 @@ void MoJoint::init(MoBodyWPtr b1, const Matrix3d& bodyFrame1, MoBodyWPtr b2, con
 
 bool MoJoint::write(FILE* moFile) const
 {
-	TCHAR* typeNames[eUnknown] = { L"RevolutePositioned", L"PrismaticPositioned", L"CylindricalPositioned", L"PlanarPositioned", L"SphericalPositioned", L"RigidPositioned" };
+	wchar_t* typeNames[eUnknown] = { L"RevolutePositioned", L"PrismaticPositioned", L"CylindricalPositioned", L"PlanarPositioned", L"SphericalPositioned", L"RigidPositioned" };
 
 	if (m_type >= eUnknown)
 	{
-		ASSERT(0);
+		_ASSERT(0);
 		return false;
 	}
 
@@ -156,8 +156,8 @@ bool MoJoint::write(FILE* moFile) const
 			Vector3d xAxis2(m_bodyFrame2(0,0), m_bodyFrame2(1,0), m_bodyFrame2(2,0));
 			Vector3d zAxis1(m_bodyFrame1(0,2), m_bodyFrame1(1,2), m_bodyFrame1(2,2));
 			double angle = xAxis1.angle(xAxis2, zAxis1);
-			TCHAR str[MAX_PATH];
-			_stprintf_s<MAX_PATH>(str, L"joint.phi(start = %s, fixed = true), ", angleString(angle).c_str());
+			wchar_t str[MAX_PATH];
+			swprintf_s(str, MAX_PATH, L"joint.phi(start = %s, fixed = true), ", angleString(angle).c_str());
 			initialValues = str;
 		}
 		break;
@@ -168,8 +168,8 @@ bool MoJoint::write(FILE* moFile) const
 			Vector3d origin2(m_bodyFrame2(0,3), m_bodyFrame2(1,3), m_bodyFrame2(2,3));
 			Vector3d delta = origin2 - origin1;
 			double distance = delta.length();
-			TCHAR str[MAX_PATH];
-			_stprintf_s<MAX_PATH>(str, L"joint.s(start = %s, fixed = true), ", distanceString(distance).c_str());
+			wchar_t str[MAX_PATH];
+			swprintf_s(str, MAX_PATH, L"joint.s(start = %s, fixed = true), ", distanceString(distance).c_str());
 			initialValues = str;
 		}
 		break;
@@ -184,8 +184,8 @@ bool MoJoint::write(FILE* moFile) const
 			Vector3d origin2(m_bodyFrame2(0,3), m_bodyFrame2(1,3), m_bodyFrame2(2,3));
 			Vector3d delta = origin2 - origin1;
 			double distance = delta.length();
-			TCHAR str[MAX_PATH];
-			_stprintf_s<MAX_PATH>(str, L"joint.s(start = %s, fixed = true), joint.phi(start = %s, fixed = true),",
+			wchar_t str[MAX_PATH];
+			swprintf_s(str, MAX_PATH, L"joint.s(start = %s, fixed = true), joint.phi(start = %s, fixed = true),",
 				distanceString(distance).c_str(), angleString(angle).c_str());
 			initialValues = str;
 		}
@@ -204,8 +204,8 @@ bool MoJoint::write(FILE* moFile) const
 			Vector3d delta = origin2 - origin1;
 			double distanceX = delta.dot(xAxis1);
 			double distanceY = delta.dot(yAxis1);
-			TCHAR str[MAX_PATH];
-			_stprintf_s<MAX_PATH>(str, L"joint.s_x(start = %s, fixed = true), joint.s_y(start = %s, fixed = true), joint.phi(start = %s, fixed = true),",
+			wchar_t str[MAX_PATH];
+			swprintf_s(str, MAX_PATH, L"joint.s_x(start = %s, fixed = true), joint.s_y(start = %s, fixed = true), joint.phi(start = %s, fixed = true),",
 				distanceString(distanceX).c_str(), distanceString(distanceY).c_str(), angleString(angle).c_str());
 			initialValues = str;
 		}
@@ -218,20 +218,20 @@ bool MoJoint::write(FILE* moFile) const
 		break;
 	}
 
-	_ftprintf_s(moFile, L"  %s %s(%sr1 = %s, n1_x = %s, n1_y = %s, r2 = %s, n2_x = %s, n2_y = %s) annotation(%s);\n\n",
-		typeNames[m_type], name().c_str(),
+	fwprintf_s(moFile, L"  %s %s(%sr1 = %s, n1_x = %s, n1_y = %s, r2 = %s, n2_x = %s, n2_y = %s) annotation(%s);\n\n",
+	typeNames[m_type], name().c_str(),
 
-		initialValues.c_str(),
+	initialValues.c_str(),
 
-		pointString (m_bodyFrame1(0,3), m_bodyFrame1(1,3), m_bodyFrame1(2,3)).c_str(),
-		vectorString(m_bodyFrame1(0,0), m_bodyFrame1(1,0), m_bodyFrame1(2,0)).c_str(),
-		vectorString(m_bodyFrame1(0,1), m_bodyFrame1(1,1), m_bodyFrame1(2,1)).c_str(),
+	pointString (m_bodyFrame1(0,3), m_bodyFrame1(1,3), m_bodyFrame1(2,3)).c_str(),
+	vectorString(m_bodyFrame1(0,0), m_bodyFrame1(1,0), m_bodyFrame1(2,0)).c_str(),
+	vectorString(m_bodyFrame1(0,1), m_bodyFrame1(1,1), m_bodyFrame1(2,1)).c_str(),
 
-		pointString (m_bodyFrame2(0,3), m_bodyFrame2(1,3), m_bodyFrame2(2,3)).c_str(),
-		vectorString(m_bodyFrame2(0,0), m_bodyFrame2(1,0), m_bodyFrame2(2,0)).c_str(),
-		vectorString(m_bodyFrame2(0,1), m_bodyFrame2(1,1), m_bodyFrame2(2,1)).c_str(),
+	pointString (m_bodyFrame2(0,3), m_bodyFrame2(1,3), m_bodyFrame2(2,3)).c_str(),
+	vectorString(m_bodyFrame2(0,0), m_bodyFrame2(1,0), m_bodyFrame2(2,0)).c_str(),
+	vectorString(m_bodyFrame2(0,1), m_bodyFrame2(1,1), m_bodyFrame2(2,1)).c_str(),
 
-		placement().c_str());
+	placement().c_str());
 
 	return true;
 }
@@ -239,8 +239,8 @@ bool MoJoint::write(FILE* moFile) const
 bool MoJoint::connections(FILE* moFile) const
 {
 	MoBodyPtr b1, b2;
-	TCHAR* frame1;
-	TCHAR* frame2;
+	wchar_t* frame1;
+	wchar_t* frame2;
 	if (flipHorizontal())
 	{
 		b1 = body(1);
@@ -259,10 +259,10 @@ bool MoJoint::connections(FILE* moFile) const
 	if (!b1 || !b2)
 		return false;
 
-	_ftprintf_s(moFile, L"  connect(%s.frame, %s.%s) annotation(%s);\n",
+	fwprintf_s(moFile, L"  connect(%s.frame, %s.%s) annotation(%s);\n",
 		b1->name().c_str(), name().c_str(), frame1, connection(b1->diagramX(), b1->diagramY()-10, diagramX()-10, diagramY()).c_str());
 
-	_ftprintf_s(moFile, L"  connect(%s.%s, %s.frame) annotation(%s);\n",
+	fwprintf_s(moFile, L"  connect(%s.%s, %s.frame) annotation(%s);\n",
 		name().c_str(), frame2, b2->name().c_str(), connection(diagramX()+10, diagramY(), b2->diagramX(), b2->diagramY()-10).c_str());
 
 	return true;
@@ -270,7 +270,7 @@ bool MoJoint::connections(FILE* moFile) const
 
 MoBodyPtr MoJoint::body(size_t index) const
 {
-	ASSERT(index < 2);
+	_ASSERT(index < 2);
 	if (index == 0)
 		return m_body1.lock();
 	else
@@ -279,7 +279,7 @@ MoBodyPtr MoJoint::body(size_t index) const
 
 const Matrix3d& MoJoint::frame(size_t index) const
 {
-	ASSERT(index < 2);
+	_ASSERT(index < 2);
 	if (index == 0)
 		return m_bodyFrame1;
 	else
@@ -287,12 +287,12 @@ const Matrix3d& MoJoint::frame(size_t index) const
 }
 
 
-LPCTSTR MoJoint::baseName() const
+wchar_t* MoJoint::baseName() const
 {
-	static TCHAR* baseNames[eUnknown] = { L"revolute", L"slider", L"cylindrical", L"planar", L"spherical", L"rigid" };
+	static wchar_t* baseNames[eUnknown] = { L"revolute", L"slider", L"cylindrical", L"planar", L"spherical", L"rigid" };
 	if (type() >= eUnknown)
 	{
-		ASSERT(0);
+		_ASSERT(0);
 		return L"unknown";
 	}
 

@@ -25,7 +25,7 @@ public:
 
 	static bool writeDefinitions(FILE* moFile, const std::vector<MoJointPtr>& joints);
 
-	virtual LPCTSTR baseName() const;
+	virtual wchar_t* baseName() const;
 
 private:
 	Type m_type;

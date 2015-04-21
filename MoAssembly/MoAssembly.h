@@ -10,7 +10,7 @@ public:
 	virtual ~MoAssembly(void);
 
 	virtual bool write(FILE* moFile) const;
-	virtual LPCTSTR baseName() const { return L"Assembly"; }
+	virtual wchar_t* baseName() const { return L"Assembly"; }
 
 	void addBody(const MoBodyPtr& body);
 	void addJoint(const MoJointPtr& joint);

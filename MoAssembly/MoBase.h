@@ -1,5 +1,5 @@
 #pragma once
-#include "StdAfx.h"
+#include "types.h"
 #include <io.h>
 #include <memory>
 #include <string>
@@ -13,7 +13,7 @@ public:
 	virtual ~MoBase(void);
 
 	virtual bool write(FILE* moFile) const = 0;
-	virtual LPCTSTR baseName() const = 0;
+	virtual wchar_t* baseName() const = 0;
 
 	MoId id() const { return m_id; }
 	void id(MoId id) { m_id = id; }

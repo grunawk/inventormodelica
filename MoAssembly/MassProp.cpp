@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "types.h"
 #include "MassProp.h"
 #define _USE_MATH_DEFINES
 #include <math.h>

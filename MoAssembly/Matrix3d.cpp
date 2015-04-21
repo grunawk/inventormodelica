@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "types.h"
 #include "Matrix3d.h"
 
 Matrix3d::Matrix3d()

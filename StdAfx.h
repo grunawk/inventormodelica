@@ -45,7 +45,6 @@
 
 // System level includes
 #include <atlbase.h>
-#include <vector>
 
 // Local include files
 #include "commonpreproc.h"
@@ -63,8 +62,9 @@
 
 // Inventor interfaces include
 #include "InventorUtils.h"
+
+// MoAssembly library
 #include "types.h"
-#include <afxcontrolbars.h>
 
 #endif // !defined(AFX_STDAFX_H__246084EF_F374_11D3_853D_0060B0F0B5B7__INCLUDED_)
 

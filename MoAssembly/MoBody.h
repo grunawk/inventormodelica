@@ -22,7 +22,7 @@ public:
 
 	void thumbnail(const std::string& thumbnail) { m_thumbnail = thumbnail; }
 
-	virtual LPCTSTR baseName() const { return L"rigidBody"; }
+	virtual wchar_t* baseName() const { return L"rigidBody"; }
 
 	// name of model that is instanced
 	std::wstring definitionName() const;

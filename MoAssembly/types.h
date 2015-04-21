@@ -1,6 +1,13 @@
+#pragma once
 
 #include <memory>
 #include <string>
+#include <vector>
+#include <stdio.h>
+
+#ifndef MAX_PATH
+#define MAX_PATH 250
+#endif
 
 class MoBase;
 typedef std::shared_ptr<MoBase> MoBasePtr;
