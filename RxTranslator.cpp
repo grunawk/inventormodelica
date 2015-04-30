@@ -183,7 +183,8 @@ HRESULT documentName(DocumentPtr doc, std::wstring& name)
 
 	name = displayName;
 	size_t i = name.find_last_of(L'.');
-	name.erase(i,std::wstring::npos);
+	if (i != std::wstring::npos)
+		name.erase(i,std::wstring::npos);
 
 	return S_OK;
 }
@@ -800,11 +801,8 @@ HRESULT CRxTranslator::CreateModelicaAssembly(FILE *pFile, AssemblyDocument* pDo
 		}
 	}
 
-	BSTR displayName;
-	hr = pDoc->get_DisplayName(&displayName);
-	std::wstring dispName = displayName;
-	size_t i = dispName.find_last_of(L'.');
-	dispName.erase(i,std::wstring::npos);
+	std::wstring dispName;
+	hr = documentName(pDoc, dispName);
 	if (FAILED(hr))
 		return hr;
 
