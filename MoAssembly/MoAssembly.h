@@ -12,6 +12,9 @@ public:
 	virtual bool write(FILE* moFile) const;
 	virtual wchar_t* baseName() const { return L"Assembly"; }
 
+	const std::vector<MoBodyPtr>& bodies() const { return m_bodies; }
+	const std::vector<MoJointPtr>& joints() const { return m_joints; }
+
 	void addBody(const MoBodyPtr& body);
 	void addJoint(const MoJointPtr& joint);
 
