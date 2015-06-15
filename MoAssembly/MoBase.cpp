@@ -26,12 +26,16 @@ void MoBase::name(const std::wstring& n)
 std::wstring MoBase::name() const
 {
 	wchar_t cstr[MAX_PATH];
-	if (id() > 0)
+	if (defaultNamed())
 	{
-		swprintf_s(cstr, MAX_PATH, L"%s%d", m_name.empty() ? baseName() : m_name.c_str(), id());
-		return cstr;
+		if (id() > 0)
+		{
+			swprintf_s(cstr, MAX_PATH, L"%s%d", baseName(), id());
+			return cstr;
+		}
+		return baseName();
 	}
-	return m_name.empty() ? baseName() : m_name;
+	return m_name;
 }
 
 std::wstring MoBase::placement() const

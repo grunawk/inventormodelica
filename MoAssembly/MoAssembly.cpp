@@ -3,6 +3,7 @@
 #include "MoJoint.h"
 #include "MoBody.h"
 #include "MoUtil.h"
+#include <set>
 
 using namespace MoUtil;
 
@@ -18,14 +19,41 @@ MoAssembly::~MoAssembly(void)
 {
 }
 
+void MoAssembly::makeUniqueName(MoBasePtr base) const
+{
+	if (!base->defaultNamed())
+	{
+		// create set of names for more efficient search (could be a member)
+		std::set<std::wstring> names;
+		for (auto& body : m_bodies)
+			names.insert(body->name());
+		for (auto& joint : m_joints)
+			names.insert(joint->name());
+
+		std::wstring name = base->name();
+		wchar_t buf[MAX_PATH];
+		int num = 0;
+		while(names.find(name) != names.end())
+		{
+			swprintf_s(buf, MAX_PATH, L"%s%d", base->name(), ++num);
+			name = buf;
+		}
+
+		if (num > 0)
+			base->name(name);
+	}
+}
+
 void MoAssembly::addBody(const MoBodyPtr& body)
 {
+	makeUniqueName(body);
 	m_bodies.push_back(body);
 	body->id(++m_lastBodyId);
 }
 
 void MoAssembly::addJoint(const MoJointPtr& joint)
 {
+	makeUniqueName(joint);
 	m_joints.push_back(joint);
 	joint->id(++m_lastJointId);
 }

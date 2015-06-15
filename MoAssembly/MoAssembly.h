@@ -29,6 +29,7 @@ public:
 
 private:
 	void layout(MoBodyPtr& body, double x, double& nextY);
+	void makeUniqueName(MoBasePtr base) const;
 
 	MoId m_lastBodyId;
 	MoId m_lastJointId;

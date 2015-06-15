@@ -19,6 +19,7 @@ public:
 	void id(MoId id) { m_id = id; }
 	void name(const std::wstring& n);
 	std::wstring name() const;
+	bool defaultNamed() const { return m_name.empty(); }
 
 	// diagram properties and methods
 
