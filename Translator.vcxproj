@@ -77,7 +77,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>"MoAssembly";"C:\Users\Public\Documents\Autodesk\Inventor 2016\SDK\DeveloperTools\Include"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>MoAssembly;R:\XInterface\InventorSDK\Source\DeveloperTools\include;C:\Users\Public\Documents\Autodesk\Inventor 2016\SDK\DeveloperTools\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;NDEBUG;_WINDOWS;UNICODE;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -132,7 +132,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>"MoAssembly";"C:\Users\Public\Documents\Autodesk\Inventor 2016\SDK\DeveloperTools\Include"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>MoAssembly;R:\XInterface\InventorSDK\Source\DeveloperTools\include;C:\Users\Public\Documents\Autodesk\Inventor 2016\SDK\DeveloperTools\Include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WIN64;_DEBUG;_WINDOWS;UNICODE;_USRDLL;GE_NO_ACAD;GELIB_NOACAD;GE_LOCATED_NEW;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>

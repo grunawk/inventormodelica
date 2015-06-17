@@ -2,3 +2,7 @@ x64/
 *.sdf
 ipch/
 *.opensdf
+
+.klocwork/
+*.suo
+*.pdb
